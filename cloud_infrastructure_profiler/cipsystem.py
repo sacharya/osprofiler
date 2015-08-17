@@ -18,4 +18,4 @@ class CIPSystem:
         return psutil.cpu_percent()
 
     def getMemoryStats(self):
-        return psutil.virutal_memory()
+        return psutil.virtual_memory()

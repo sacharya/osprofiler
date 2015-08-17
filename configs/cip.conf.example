@@ -1,0 +1,34 @@
+#General app configurables
+push_interval: 1
+
+#mysql profiler tunables
+mysql_profiler:
+  enabled: yes
+  push_interval: 1
+  auth:
+    username: "root"
+    password: "password"
+
+rabbit_profiler:
+  enabled: yes
+  push_interval: 1
+  auth:
+    username: "root"
+    password: "password"
+
+blueflood:
+  enabled: yes
+  auth:
+    username: "root"
+    password: "blah"
+
+
+#Used to specifiy other processes that CIP will
+#gather statistics on
+processes_profiler:
+  nova_api:
+    - memory
+    - cpu
+    - network
+  glance_api:
+    - memory

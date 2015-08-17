@@ -16,14 +16,14 @@ MYSQL_LOG_FILE="/var/log/cip/mysql.log"
 def main():
     """Run the main application."""
 
-        #Variables
-        ##CIPSystem object to gathere system metrics
-        systemReporter = CIPSystem()
+    #Variables
+    ##CIPSystem object to gathere system metrics
+    systemReporter = CIPSystem()
     #rabbitReporter = 
     #mysqlReporter =
 
     #Reading the configuration file
-        configDict = _readConfig()
+    configDict = _readConfig()
     push_interval = configDict['push_interval']
 
     #Getting the PIDs of the processes we care about.
@@ -33,6 +33,7 @@ def main():
     while (True):
         _getSystemNetwork(systemReporter)
         _getSystemCPU(systemReporter)
+        _getSystemMemory(systemReporter)
         time.sleep(push_interval)
 
 

@@ -1,3 +1,5 @@
+#TODO: Put each function call on it's own thread?
+
 import os
 import psutil
 import time
@@ -22,10 +24,17 @@ def main():
 
 	#Reading the configuration file
         configDict = _readConfig()
+	push_interval = configDict['push_interval']
+
+	#Getting the PIDs of the processes we care about.
+	#mysqlpid =
+	#rabbitpid =
 
 	while (True):
-		time.sleep(configDict['push_interval'])
 		_getSystemNetwork(systemReporter)
+		_getSystemCPU(systemReporter)
+		time.sleep(push_interval)
+
 
 
 
@@ -45,13 +54,15 @@ def _readConfig():
 
 def _getSystemNetwork(systemReporter):
 	"""Get System Network Statistics."""
-	print systemReporter.get_NetworkIOStats()
+	print systemReporter.getNetworkIOStats()
 
 def _getSystemMemory(systemReporter):
 	"""Get System Memory Statistics."""
+	print systemReporter.getMemoryStats()
 
 def _getSystemCPU(systemReporter):
 	"""Get System CPU Statistics."""
+	print systemReporter.getCPUPercent()
 
 
 

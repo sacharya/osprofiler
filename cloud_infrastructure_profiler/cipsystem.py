@@ -11,7 +11,11 @@ class CIPSystem:
 		self.data = "data"
 
 
-	def get_NetworkIOStats(self):
+	def getNetworkIOStats(self):
 		return psutil.net_io_counters()
 
+	def getCPUPercent(self):
+		return psutil.cpu_percent()
 
+	def getMemoryStats(self):
+		return psutil.virutal_memory()

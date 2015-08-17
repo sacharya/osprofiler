@@ -14,57 +14,57 @@ RABBIT_LOG_FILE="/var/log/cip/rabbit.log"
 MYSQL_LOG_FILE="/var/log/cip/mysql.log"
 
 def main():
-	"""Run the main application."""
+    """Run the main application."""
 
         #Variables
         ##CIPSystem object to gathere system metrics
         systemReporter = CIPSystem()
-	#rabbitReporter = 
-	#mysqlReporter =
+    #rabbitReporter = 
+    #mysqlReporter =
 
-	#Reading the configuration file
+    #Reading the configuration file
         configDict = _readConfig()
-	push_interval = configDict['push_interval']
+    push_interval = configDict['push_interval']
 
-	#Getting the PIDs of the processes we care about.
-	#mysqlpid =
-	#rabbitpid =
+    #Getting the PIDs of the processes we care about.
+    #mysqlpid =
+    #rabbitpid =
 
-	while (True):
-		_getSystemNetwork(systemReporter)
-		_getSystemCPU(systemReporter)
-		time.sleep(push_interval)
+    while (True):
+        _getSystemNetwork(systemReporter)
+        _getSystemCPU(systemReporter)
+        time.sleep(push_interval)
 
 
 
 
 
 def _readConfig():
-	"""Read values from configuration file."""
-	try:
-		with open(CONFIG_FILE, 'r') as f:
-			config = f.read()
-	except IOError:
-		print "Unable to read from the configuration file %s" % CONFIG_FILE
-	try:
-		return yaml.load(config)
-	except yaml.parser.Error:
-		return "ERROR: Failed to read configuration file. Invalid yaml."
+    """Read values from configuration file."""
+    try:
+        with open(CONFIG_FILE, 'r') as f:
+            config = f.read()
+    except IOError:
+        print "Unable to read from the configuration file %s" % CONFIG_FILE
+    try:
+        return yaml.load(config)
+    except yaml.parser.Error:
+        return "ERROR: Failed to read configuration file. Invalid yaml."
 
 
 def _getSystemNetwork(systemReporter):
-	"""Get System Network Statistics."""
-	print systemReporter.getNetworkIOStats()
+    """Get System Network Statistics."""
+    print systemReporter.getNetworkIOStats()
 
 def _getSystemMemory(systemReporter):
-	"""Get System Memory Statistics."""
-	print systemReporter.getMemoryStats()
+    """Get System Memory Statistics."""
+    print systemReporter.getMemoryStats()
 
 def _getSystemCPU(systemReporter):
-	"""Get System CPU Statistics."""
-	print systemReporter.getCPUPercent()
+    """Get System CPU Statistics."""
+    print systemReporter.getCPUPercent()
 
 
 
 if __name__ == '__main__':
-	main()
+    main()

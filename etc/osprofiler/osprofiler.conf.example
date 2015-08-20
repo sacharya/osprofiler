@@ -9,7 +9,7 @@ agents:
       - num_connections
     auth:
       username: "root"
-      password: "password"
+      password: "admin"
 
   - plugin: rabbit
     name: "rabbitagent1"

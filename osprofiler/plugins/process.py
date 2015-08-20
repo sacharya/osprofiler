@@ -18,6 +18,11 @@ class Process:
     def _get_memory_stats(self, proc_obj):
         return proc_obj.memory_info()
 
+    def _get_cpu_stats(self, proc_obj):
+        return proc_obj.cpu_info()
+
+    def _get_network_stats(self, proc_obj):
+        return proc_obj.network_info()
 
     def _get_proc_obj(self, process_name):
         """
@@ -33,11 +38,13 @@ class Process:
                 pinfo = proc.as_dict(attrs=['name','pid'])
                 if pinfo['name'] == process_name:
                     return proc
-            except psutil.NoSuchProcess:
+            except psutil.NoSuchProcess as ex:
+                print str(ex)
                 pass
         return None
 
     def get_sample(self):
+        print self.__class__.__name__ + ".get_sample"
         sample = {
             "hostname": os.uname()[1],
             "agent_name": self.agent_config['name'],
@@ -49,6 +56,7 @@ class Process:
         for metric in self.agent_config['metrics']:
             method_name = "_get_" + metric + "_stats"
             metric_function_object = getattr(self, method_name)
-            sample['metrics'].append(metric_function_object(proc_obj))
+            if proc_obj is not None:
+                sample['metrics'].append(metric_function_object(proc_obj))
 
         return sample

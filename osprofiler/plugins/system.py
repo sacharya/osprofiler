@@ -22,6 +22,7 @@ class System:
         return psutil.virtual_memory()
 
     def get_sample(self):
+        print self.__class__.__name__ + ".get_sample"
         # A list of metric objects. This is called a sample
         # The system plugin sample returns the system metrics 
         # defined in the config file.

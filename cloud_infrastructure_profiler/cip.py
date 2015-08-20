@@ -1,43 +1,46 @@
-#TODO: Put each function call on it's own thread?
+# TODO: Put each function call on it's own thread?
 
 import os
 import psutil
 import time
 import yaml
 
-from cipsystem import CIPSystem
+# GLOBAL CONSTANTS
+CONFIG_FILE = "/etc/cip/cip.conf"
+LOG_FILE = "/var/log/cip/cip.log"
 
-#GLOBAL CONSTANTS
-CONFIG_FILE="/etc/cip/cip.conf"
-SYSTEM_LOG_FILE="/var/log/cip/system.log"
-RABBIT_LOG_FILE="/var/log/cip/rabbit.log"
-MYSQL_LOG_FILE="/var/log/cip/mysql.log"
 
 def main():
     """Run the main application."""
-
-    #Variables
-    ##CIPSystem object to gathere system metrics
-    systemReporter = CIPSystem()
-    #rabbitReporter = 
-    #mysqlReporter =
-
-    #Reading the configuration file
+    # Variables
+    # Reading the configuration file
     configDict = _readConfig()
     push_interval = configDict['push_interval']
 
-    #Getting the PIDs of the processes we care about.
-    #mysqlpid =
-    #rabbitpid =
+    # List of agents specificed in the config
+    agent_list = configDict['agents']
+
+    # Each agent entry looks like:
+    '''
+    agents:
+      - plugin: cipsystem
+        name: "systemagent1"
+        metrics:
+          - network
+          - cpu
+          - memory
+    '''
+
+    # Import pythong modules for each agent and instantiate an object
+    agent_object_dict = _import_agents(agent_list)
 
     while (True):
-        _getSystemNetwork(systemReporter)
-        _getSystemCPU(systemReporter)
-        _getSystemMemory(systemReporter)
+        for agent in agent_list:
+            agent_object = agent_object_dict[agent['name']]
+            sample = agent_object.get_sample()
+            print sample
+        
         time.sleep(push_interval)
-
-
-
 
 
 def _readConfig():
@@ -52,19 +55,27 @@ def _readConfig():
     except yaml.parser.Error:
         return "ERROR: Failed to read configuration file. Invalid yaml."
 
+def _import_agents(agent_list):
+    """
+    Import the modules for the plugins specified in the
+    config file, instantiate a class, and store it in
+    a dict with it's name reference as the key
+    """
 
-def _getSystemNetwork(systemReporter):
-    """Get System Network Statistics."""
-    print systemReporter.getNetworkIOStats()
+    agent_object_dict = {}
+    for agent in agent_list:
+        # Import the module
+        loaded_mod = __import__(agent['plugin'])
+        class_name = _get_class_name(agent['plugin'])
+        # Load class from imported module, instantiate an object,  and store it in dict
+        agent_object_dict[agent['name']] = getattr(loaded_mod, class_name)(agent)
+    # Will end up with something looking like:
+    # { "mysqlagent1": <OBJ>, "systemagent1": <OBJ> }
+    return agent_object_dict
 
-def _getSystemMemory(systemReporter):
-    """Get System Memory Statistics."""
-    print systemReporter.getMemoryStats()
-
-def _getSystemCPU(systemReporter):
-    """Get System CPU Statistics."""
-    print systemReporter.getCPUPercent()
-
+def _get_class_name(mod_name):
+    output = mod_name.title()
+    return output
 
 
 if __name__ == '__main__':

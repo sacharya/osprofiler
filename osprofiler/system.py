@@ -2,7 +2,7 @@ import os
 import psutil
 
 
-class Cipsystem:
+class System:
     """
     A Class to retrieve information on system or process resource
     utilization. Methods should return an object that can be

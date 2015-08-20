@@ -6,8 +6,8 @@ import time
 import yaml
 
 # GLOBAL CONSTANTS
-CONFIG_FILE = "/etc/cip/cip.conf"
-LOG_FILE = "/var/log/cip/cip.log"
+CONFIG_FILE = "/etc/osprofiler/osprofiler.conf"
+LOG_FILE = "/var/log/osprofiler.log"
 
 
 def main():

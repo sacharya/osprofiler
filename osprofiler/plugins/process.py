@@ -2,18 +2,18 @@
 
 import psutil
 import os
+import pluginbase
 
-
-class Process:
+class Process(pluginbase.PluginBase):
     """
     A class to retrieve information on process resource
     utilization. This class is an agent of osprofiler and
     must follow the agent module template.
     """
 
-    def __init__(self, agent_config):
-        self.agent_config = agent_config
-
+    def __init__(self, *args, **kwargs):
+        super(Process, self).__init__(args, kwargs)
+        #self.handlers = handlers
 
     def _get_memory_stats(self, proc_obj):
         return proc_obj.memory_info()
@@ -48,16 +48,16 @@ class Process:
         return proc_obj_list
 
     def get_sample(self):
-        print self.__class__.__name__ + ".get_sample"
+        super(Process, self).get_sample()
         sample = {
             "hostname": os.uname()[1],
-            "agent_name": self.agent_config['name'],
+            "agent_name": self.config['name'],
             "metrics": list()
             }
 
-        proc_obj_list = self._get_proc_obj(self.agent_config['process_name'])
+        proc_obj_list = self._get_proc_obj(self.config['process_name'])
         
-        for metric in self.agent_config['metrics']:
+        for metric in self.config['metrics']:
             method_name = "_get_" + metric + "_stats"
             metric_function_object = getattr(self, method_name)
             for proc_obj in proc_obj_list:
@@ -66,4 +66,5 @@ class Process:
                     pid_metrics['pid'] = proc_obj.pid
                     pid_metrics['metric_values'].append(metric_function_object(proc_obj))
                     sample['metrics'].append(pid_metrics)
+        print "Leaving " + self.__class__.__name__ + ".get_sample"
         return sample

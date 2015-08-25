@@ -1,4 +1,6 @@
 build
 dist
 *.egg-info
-*/*.pyc
+*.pyc
+osprofiler/output.file
+osprofiler/handlers/python_blueflood

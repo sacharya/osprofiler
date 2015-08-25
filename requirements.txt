@@ -1,1 +1,6 @@
+kombu
+MySQLdb
 pyyaml
+elasticsearch
+psutil
+eventlet

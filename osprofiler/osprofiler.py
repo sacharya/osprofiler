@@ -1,10 +1,11 @@
 # TODO: Put each function call on it's own thread?
-
+import eventlet
+eventlet.monkey_patch()
 import os
 import psutil
 import sys
 import time
-import yaml
+import utils
 
 
 # GLOBAL CONSTANTS
@@ -16,6 +17,7 @@ class PluginLoader:
     def __init__(self, config):
         self.config = config
         self.agent_list = config['agents']
+        self.backend_list = config['backend']
 
     def load_plugins(self):
         """
@@ -24,61 +26,68 @@ class PluginLoader:
         a dict with it's name reference as the key
         """
 
-        agent_object_dict = {}
-        sys.path.insert(0, PLUGINS)
+        backend_dict = {}
+        for backend in self.backend_list:
+            backend_dict[backend['name']] = self.load_object(backend)
+
+        agent_dict = {}
         for agent in self.agent_list:
-            try:
-                loaded_mod = __import__(agent['plugin'])
-                class_name =  self._get_class_name( agent['plugin'])
-                # Load class from imported module, instantiate an object,  and store it in dict
-                agent_object_dict[agent['name']] = getattr(loaded_mod, class_name)(agent)
-                print "Loaded %s " % agent['plugin']
-            except Exception as ex:
-                print "Error loading :"
-                print str(ex)
-                pass
+            handlers = []
+            if 'handlers' in agent:
+                handler_keys = agent['handlers']
+                for handler in agent['handlers'].split(","):
+                    handler = backend_dict[handler]
+                    handlers.append(handler)
+            agent_dict[agent['name']] = self.load_object(agent, handlers=handlers)
+        return [agent_dict, backend_dict]
 
-        # Will end up with something looking like:
-        # { "mysqlagent1": <OBJ>, "systemagent1": <OBJ> }
-        return agent_object_dict
+    def load_object(self, params, handlers=None):
+        full_name = params['plugin']
+        try:
+            mod_name, class_name = full_name.split(".", 1)[1].rsplit(".", 1)
+            mod = __import__(mod_name, fromlist=[class_name])
+            klass = getattr(mod, class_name)
+            print "Loaded klass %s " % klass
+            print "Params %s Handlers %s " % (params, handlers)
+            args = []
+            kwargs = {"config":params, "handlers":handlers}
+            return klass(config=params, handlers=handlers)
+            #return klass(*args, **kwargs)
+        except Exception as ex:
+            print str(ex)
+            raise Exception("Unable to load all plugins and handlers. Check your config.")
 
-    def _get_class_name(self, mod_name):
-        output = mod_name.title()
-        return output
 
-
-class Worker:
+class Application:
     def __init__(self, config):
         self.config = config
         self.push_interval = config['push_interval']
         loader = PluginLoader(config)
-        self.plugins = loader.load_plugins()
+        plugins, handlers = loader.load_plugins()
+        self.plugins = plugins
+        self.handlers = handlers
 
-    def work(self):
-        while True:
-            for agent in self.config['agents']:
-                if agent['name'] in self.plugins:
-                    plugin = self.plugins[agent['name']]
-                    plugin.get_sample()
-            time.sleep(self.push_interval)
+    def process(self):
+        pool = eventlet.greenpool.GreenPool()
+        handlers = []
+        for agent in self.config['agents']:
+            if agent['name'] in self.plugins:
+                plugin = self.plugins[agent['name']]
+                if plugin.handlers:
+                    pool.spawn(plugin.execute)
+                    time.sleep(0.1)
+                    handlers.extend(plugin.handlers)
+        for handler in handlers:
+            worker = handler.worker
+            pool.spawn(worker.work)
+            time.sleep(0.1)
 
-
-def _readConfig():
-    """Read values from configuration file."""
-    try:
-        with open(CONFIG_FILE, 'r') as f:
-            config = f.read()
-    except IOError:
-        print "Unable to read from the configuration file %s" % CONFIG_FILE
-    try:
-        return yaml.load(config)
-    except yaml.parser.Error:
-        return "ERROR: Failed to read configuration file. Invalid yaml."
+        pool.waitall()
 
 def main():
-    config = _readConfig()
-    worker = Worker(config)
-    worker.work()
+    config = utils.readConfig()
+    app = Application(config)
+    app.process()
 
 if __name__ == '__main__':
     main()

@@ -1,6 +1,10 @@
 import handlers
 import kombu
+import log
 import pluginbase
+
+logger = log.get_logger()
+
 
 class Rabbit(pluginbase.PluginBase):
 
@@ -30,24 +34,11 @@ class Rabbit(pluginbase.PluginBase):
         self.queue.declare()
 
     def get_messages(self):
-        i=0
-        while True:
-            print type(self.queue)
-            msg = self.queue.get()
-            if msg is None:
-                break;
-            i += 1
-            log = False
-            if log:
-                print "="*25
-                print i
-                import pprint
-                pprint.pprint(msg.payload)
-                print msg.acknowledged
-                print msg.payload['_unique_id']
-                print msg.payload['message_id']
-                print msg.payload['event_type']
-            return msg.payload
+        msg = self.queue.get()
+        if msg is None:
+            logger.debug("Empty queue")
+            return
+        return msg.payload
 
     def get_sample(self):
         super(Rabbit, self).get_sample()
@@ -61,6 +52,6 @@ class Rabbit(pluginbase.PluginBase):
         if d2 is None:
             d2 = {}
         d4 = dict(d0.items() + d1.items() + d2.items())
-        print d4
-        print "Leaving " + self.__class__.__name__ + ".get_sample"
+        logger.debug("%s " % d4)
+        logger.debug("Leaving " + self.__class__.__name__ + ".get_sample")
         return d4

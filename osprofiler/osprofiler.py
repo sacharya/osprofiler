@@ -1,6 +1,7 @@
 # TODO: Put each function call on it's own thread?
 import eventlet
 eventlet.monkey_patch()
+import log
 import os
 import psutil
 import sys
@@ -12,6 +13,9 @@ import utils
 CONFIG_FILE = "/etc/osprofiler/osprofiler.conf"
 LOG_FILE = "/var/log/osprofiler.log"
 PLUGINS = "plugins"
+
+logger = log.get_logger()
+
 
 class PluginLoader:
     def __init__(self, config):
@@ -47,16 +51,14 @@ class PluginLoader:
             mod_name, class_name = full_name.split(".", 1)[1].rsplit(".", 1)
             mod = __import__(mod_name, fromlist=[class_name])
             klass = getattr(mod, class_name)
-            print "Loaded klass %s " % klass
-            print "Params %s Handlers %s " % (params, handlers)
             args = []
             kwargs = {"config":params, "handlers":handlers}
-            return klass(config=params, handlers=handlers)
-            #return klass(*args, **kwargs)
+            logger.info("Loaded klass %s with kwargs %s " % (klass, kwargs))
+            return klass(*args, **kwargs)
         except Exception as ex:
-            print str(ex)
-            raise Exception("Unable to load all plugins and handlers. Check your config.")
-
+            logger.exception("Unable to load all plugins and handlers. Check \
+                    your config.")
+            raise ex
 
 class Application:
     def __init__(self, config):

@@ -62,7 +62,10 @@ loghandler = logging.handlers.TimedRotatingFileHandler(
 )
 loghandler.setFormatter(logformatter)
 
+import sys
+consolehandler = logging.StreamHandler(sys.stdout)
 # Set level and handler to root logger
 logger = logging.getLogger()
 logger.addHandler(loghandler)
+logger.addHandler(consolehandler)
 logger.setLevel(loglevel)

@@ -1,11 +1,15 @@
 import eventlet
 eventlet.monkey_patch()
+import log
 from handler import Handler
 import time
 
 
 from python_blueflood.client import Blueflood
 from python_blueflood.client import utils
+
+logger = log.get_logger()
+
 
 class BluefloodHandler():
     
@@ -26,7 +30,7 @@ class BluefloodWorker(object):
     def __init__(self, queue, client):
         self.queue = queue
         self.client = client
-        self.batch_size = 100
+        self.batch_size = 5
 
     def work(self):
         while True:
@@ -34,17 +38,23 @@ class BluefloodWorker(object):
             count = 0
             for i in xrange(self.batch_size):
                 try:
-                    print "Queue size is: %s " % self.queue.qsize()
-                    data = []
+                    logger.debug("Blueflood Queue size is: %s " %
+                            self.queue.qsize())
                     entries = self.queue.get(block=False)
                     count = count + 1
                     for entry in entries:
                         data.append(entry)
                 except eventlet.queue.Empty:
-                    print "Empty queue"
                     time.sleep(1)
-            print "Got %s data" % len(data)
+
+            logger.info("Got %s docs" % len(data))
             if data:
-                client.ingest(data)
-                for i in xrange(count):
-                    self.queue.task_done()
+                try:
+                    self.client.ingest(data)
+                    for i in xrange(count):
+                        self.queue.task_done()
+                    logger.info("Processed %s entries to blueflood" % len(data))
+                except Exception as e:
+                    logger.exception("Error submitting to blueflood")
+                    raise e
+            time.sleep(1)

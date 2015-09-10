@@ -15,17 +15,19 @@
 # limitations under the License.
 
 import handlers
+import log
 import shlex
 import subprocess
 import utils
 import pluginbase
 
+
+logger = log.get_logger()
+
 class Mysql(pluginbase.PluginBase):
 
     def __init__(self, *args, **kwargs):
         super(Mysql, self).__init__(*args, **kwargs)
-        #self.handlers = handlers
-	#self.handlers.extend([handlers.BluefloodHandler(config)])
 
     def galera_status_check(self, arg):
         proc = subprocess.Popen(shlex.split(arg),
@@ -61,11 +63,11 @@ class Mysql(pluginbase.PluginBase):
         )
 
         if retcode > 0:
-            print err
+            logger.exception(str(err))
 
         if not output:
-            print('No output received from mysql. Cannot gather metrics.')
-
+            logger.exception('No output received from mysql. Cannot gather metrics.')
+            
         show_status_list = output.split('\n')[1:-1]
         entries = []
         ms = utils.time_in_ms()

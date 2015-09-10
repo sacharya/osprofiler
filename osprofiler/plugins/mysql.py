@@ -23,7 +23,7 @@ import pluginbase
 class Mysql(pluginbase.PluginBase):
 
     def __init__(self, *args, **kwargs):
-        super(Mysql, self).__init__(args, kwargs)
+        super(Mysql, self).__init__(*args, **kwargs)
         #self.handlers = handlers
 	#self.handlers.extend([handlers.BluefloodHandler(config)])
 

@@ -5,7 +5,7 @@ import pluginbase
 class Rabbit(pluginbase.PluginBase):
 
     def __init__(self, *args, **kwargs):
-        super(Rabbit, self).__init__(args, kwargs)
+        super(Rabbit, self).__init__(*args, **kwargs)
 
     def connect(self, name):
         if 'host' in self.config['auth']:

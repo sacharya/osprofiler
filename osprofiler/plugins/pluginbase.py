@@ -7,10 +7,8 @@ import time
 class PluginBase(object):
 
     def __init__(self, *args, **kwargs):
-        self.config = args[1].get('config')
-        self.handlers =  args[1].get('handlers')
-        #self.config = kwargs.get('config')
-        #self.handlers = kwargs.get('handlers')
+        self.config = kwargs.get('config')
+        self.handlers = kwargs.get('handlers')
 
     def get_sample(self):
         pass

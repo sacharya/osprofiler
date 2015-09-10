@@ -6,12 +6,11 @@ import utils
 import elasticsearch
 from elasticsearch.helpers import bulk
 
-client = elasticsearch.Elasticsearch(['192.168.4.22'])
-
 class ElasticSearchHandler(object):
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.queue = eventlet.queue.Queue()
+        client = elasticsearch.Elasticsearch(['192.168.4.22'])
         self.worker = ElasticSearchWorker(self.queue, client)
 
     def handle(self, data):

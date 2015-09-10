@@ -1,8 +1,10 @@
-# Get process information
-
+import log
 import psutil
 import os
 import pluginbase
+
+logger = log.get_logger()
+
 
 class Process(pluginbase.PluginBase):
     """
@@ -12,8 +14,7 @@ class Process(pluginbase.PluginBase):
     """
 
     def __init__(self, *args, **kwargs):
-        super(Process, self).__init__(args, kwargs)
-        #self.handlers = handlers
+        super(Process, self).__init__(*args, **kwargs)
 
     def _get_memory_stats(self, proc_obj):
         return proc_obj.memory_info()
@@ -48,7 +49,6 @@ class Process(pluginbase.PluginBase):
         return proc_obj_list
 
     def get_sample(self):
-        super(Process, self).get_sample()
         sample = {
             "hostname": os.uname()[1],
             "agent_name": self.config['name'],
@@ -66,5 +66,5 @@ class Process(pluginbase.PluginBase):
                     pid_metrics['pid'] = proc_obj.pid
                     pid_metrics['metric_values'].append(metric_function_object(proc_obj))
                     sample['metrics'].append(pid_metrics)
-        print "Leaving " + self.__class__.__name__ + ".get_sample"
+        logger.info(sample)
         return sample

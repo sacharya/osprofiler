@@ -41,7 +41,6 @@ class Rabbit(pluginbase.PluginBase):
         return msg.payload
 
     def get_sample(self):
-        super(Rabbit, self).get_sample()
         self.connect("monitor.info")
         d0 = {"node":"1", "timestamp":"123", "agent": "mysql"}
         d1 = self.get_messages()

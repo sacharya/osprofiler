@@ -4,6 +4,8 @@ import log
 import handlers
 
 import time
+import utils
+
 
 logger = log.get_logger()
 
@@ -13,6 +15,7 @@ class PluginBase(object):
     def __init__(self, *args, **kwargs):
         self.config = kwargs.get('config')
         self.handlers = kwargs.get('handlers')
+        self.host_id = utils.host_identifier()
 
     def get_sample(self):
         pass

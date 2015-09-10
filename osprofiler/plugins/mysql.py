@@ -73,6 +73,7 @@ class Mysql(pluginbase.PluginBase):
         ms = utils.time_in_ms()
         for i in show_status_list:
             entry ={"ttlInSeconds": 18, "collectionTime": ms, "metricName":
-                    "%s " % i.split('\t')[0], "metricValue": i.split('\t')[1]}
+                    "%s.%s" % (self.host_id, i.split('\t')[0]), "metricValue": i.split('\t')[1]}
             entries.append(entry)
+        logger.debug(entries)
         return entries

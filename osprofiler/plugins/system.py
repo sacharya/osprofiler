@@ -1,6 +1,9 @@
+import log
 import os
 import psutil
 import pluginbase
+
+logger = log.get_logger()
 
 class System(pluginbase.PluginBase):
     """
@@ -10,8 +13,7 @@ class System(pluginbase.PluginBase):
     """
     # TODO: List methods of this class, and write a more detailed description.
     def __init__(self, *args, **kwargs):
-        super(System, self).__init__(args, kwargs)
-        #self.handlers = handlers
+        super(System, self).__init__(*args, **kwargs)
 
     def get_network_stats(self):
         return psutil.net_io_counters()
@@ -23,7 +25,6 @@ class System(pluginbase.PluginBase):
         return psutil.virtual_memory()
 
     def get_sample(self):
-        super(System, self).get_sample()
         # A list of metric objects. This is called a sample
         # The system plugin sample returns the system metrics 
         # defined in the config file.
@@ -37,5 +38,5 @@ class System(pluginbase.PluginBase):
             method_name = "get_" + metric + "_stats"
             metric_function_object = getattr(self, method_name)
             sample['metrics'].append(metric_function_object())
-        print "Leaving " + self.__class__.__name__ + ".get_sample"
+        logger.info(sample)
         return sample

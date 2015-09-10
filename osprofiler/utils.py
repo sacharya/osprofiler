@@ -1,4 +1,5 @@
 import datetime
+import socket
 import time
 import yaml
 
@@ -11,6 +12,9 @@ def time_in_s():
 
 def time_in_ms():
     return int(time_in_s() * 1000.0)
+
+def host_identifier():
+    return "intel.%s" % socket.gethostname()
 
 def readConfig():
     """Read values from configuration file."""

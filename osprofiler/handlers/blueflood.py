@@ -29,6 +29,7 @@ class BluefloodHandler(Handler):
                 entry ={"ttlInSeconds": 18, "collectionTime": ms, 
                         "metricName": "%s.%s" % (self.host_id, k), 
                             "metricValue": v}
+                print entry
                 self.queue.put(entry)
 
 class BluefloodWorker(object):

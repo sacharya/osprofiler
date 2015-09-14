@@ -56,6 +56,12 @@ class Mysql(pluginbase.PluginBase):
             "'^(wsrep.*|Threads|queries)'\"") % (host, port)
 
     def get_sample(self):
+        sample = {
+                "hostname": self.host_id,
+                "agent_name": self.config['name'],
+                "metrics": list()
+                }
+
         host = "127.0.0.1"
         port = "3306"
         retcode, output, err = self.galera_status_check(
@@ -72,8 +78,7 @@ class Mysql(pluginbase.PluginBase):
         entries = []
         ms = utils.time_in_ms()
         for i in show_status_list:
-            entry ={"ttlInSeconds": 18, "collectionTime": ms, "metricName":
-                    "%s.%s" % (self.host_id, i.split('\t')[0]), "metricValue": i.split('\t')[1]}
-            entries.append(entry)
-        logger.debug(entries)
-        return entries
+            entry ={i.split('\t')[0]: i.split('\t')[1]}
+            sample['metrics'].append(entry)
+        logger.debug(sample)
+        return sample

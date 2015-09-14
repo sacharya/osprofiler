@@ -16,14 +16,22 @@ class Process(pluginbase.PluginBase):
     def __init__(self, *args, **kwargs):
         super(Process, self).__init__(*args, **kwargs)
 
-    def _get_memory_stats(self, proc_obj):
-        return proc_obj.memory_info()
+    def _get_memory_stats(self, process):
+        memory = {}
+        memory["process.%s.memory_info.rss" % process.name()] = process.memory_info().rss
+        memory["process.%s.memory_info.vms" % process.name()] = process.memory_info().vms
+        memory["process.%s.memory_percent" % process.name()] = process.memory_percent()
+        memory["process.%s.memory_info_ex.rss" % process.name()] = process.memory_info().rss
+        memory["process.%s.memory_info_ex.vms" % process.name()] = process.memory_info_ex().vms         
+        return memory
 
-    def _get_cpu_stats(self, proc_obj):
-        return proc_obj.cpu_info()
-
-    def _get_network_stats(self, proc_obj):
-        return proc_obj.network_info()
+    def _get_cpu_stats(self, process):
+        cpu = {}
+        cpu["process.%s.cpu_percent" % process.name()] = process.cpu_percent()
+        #cpu["process.%s.cpu_affinity" % process.name()] = process.cpu_affinity()
+        cpu["process.%s.cpu_times.user" % process.name()] = process.cpu_times().user
+        cpu["process.%s.cpu_times.system" % process.name()] = process.cpu_times().system
+        return cpu
 
     def _get_proc_obj(self, process_name):
         """
@@ -37,16 +45,16 @@ class Process(pluginbase.PluginBase):
         :returns: ```list of obj``` A list of process objects that correspond to the name.
         """
 
-        proc_obj_list = list()
+        proc_list = list()
         for proc in psutil.process_iter():
             try:
                 pinfo = proc.as_dict(attrs=['name','pid'])
-                if pinfo['name'] == process_name:
-                    proc_obj_list.append(proc)
+                #if pinfo['name'] == process_name:
+                proc_list.append(proc)
             except psutil.NoSuchProcess as ex:
                 print str(ex)
                 pass
-        return proc_obj_list
+        return proc_list
 
     def get_sample(self):
         sample = {
@@ -56,15 +64,18 @@ class Process(pluginbase.PluginBase):
             }
 
         proc_obj_list = self._get_proc_obj(self.config['process_name'])
-        
-        for metric in self.config['metrics']:
-            method_name = "_get_" + metric + "_stats"
-            metric_function_object = getattr(self, method_name)
-            for proc_obj in proc_obj_list:
-                if proc_obj is not None:
-                    pid_metrics = {"pid": int(), "metric_values": list()}
-                    pid_metrics['pid'] = proc_obj.pid
-                    pid_metrics['metric_values'].append(metric_function_object(proc_obj))
-                    sample['metrics'].append(pid_metrics)
-        logger.info(sample)
+        for proc_obj in proc_obj_list:
+            if proc_obj is not None:
+                try :
+                    memory = self._get_memory_stats(proc_obj)
+                    cpu = self._get_cpu_stats(proc_obj)
+                    mydict = cpu.copy()
+                    mydict.update(memory)
+                    sample['metrics'].append(mydict)
+                except psutil.NoSuchProcess as ex:
+                    print str(ex)
+                    pass
+        #logger.info(sample)
+        #import pprint
+        #pprint.pprint(sample)
         return sample

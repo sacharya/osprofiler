@@ -3,7 +3,7 @@ eventlet.monkey_patch()
 import log
 from handler import Handler
 import time
-
+import utils
 
 from python_blueflood.client import Blueflood
 from python_blueflood.client import utils
@@ -11,10 +11,10 @@ from python_blueflood.client import utils
 logger = log.get_logger()
 
 
-class BluefloodHandler():
+class BluefloodHandler(Handler):
     
     def __init__(self, *args, **kwargs):
-        self.config = kwargs.get('config')
+        super(BluefloodHandler, self).__init__(*args, **kwargs)
         auth_url = self.config['auth']['auth_url']
         apikey = self.config['auth']['apikey']
         username = self.config['auth']['username']
@@ -23,14 +23,20 @@ class BluefloodHandler():
         self.worker = BluefloodWorker(self.queue, client)
 
     def handle(self, data):
-        self.queue.put(data)
+        ms = utils.time_in_ms()
+        for d in data.get('metrics'):
+            for k, v in d.iteritems():
+                entry ={"ttlInSeconds": 18, "collectionTime": ms, 
+                        "metricName": "%s.%s" % (self.host_id, k), 
+                            "metricValue": v}
+                self.queue.put(entry)
 
 class BluefloodWorker(object):
 
     def __init__(self, queue, client):
         self.queue = queue
         self.client = client
-        self.batch_size = 5
+        self.batch_size = 100
 
     def work(self):
         while True:
@@ -40,10 +46,9 @@ class BluefloodWorker(object):
                 try:
                     logger.debug("Blueflood Queue size is: %s " %
                             self.queue.qsize())
-                    entries = self.queue.get(block=False)
+                    entry = self.queue.get(block=False)
                     count = count + 1
-                    for entry in entries:
-                        data.append(entry)
+                    data.append(entry)
                 except eventlet.queue.Empty:
                     time.sleep(1)
 
@@ -51,10 +56,11 @@ class BluefloodWorker(object):
             if data:
                 try:
                     self.client.ingest(data)
-                    for i in xrange(count):
+                    for i in xrange(len(data)):
                         self.queue.task_done()
                     logger.info("Processed %s entries to blueflood" % len(data))
                 except Exception as e:
+                    logger.exception(str(data))
                     logger.exception("Error submitting to blueflood")
                     raise e
             time.sleep(1)

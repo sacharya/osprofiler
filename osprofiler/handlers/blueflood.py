@@ -2,6 +2,7 @@ import eventlet
 eventlet.monkey_patch()
 import log
 from handler import Handler
+from handler import Worker
 import time
 import utils
 
@@ -26,42 +27,39 @@ class BluefloodHandler(Handler):
         ms = utils.time_in_ms()
         for d in data.get('metrics'):
             for k, v in d.iteritems():
-                entry ={"ttlInSeconds": 18, "collectionTime": ms, 
-                        "metricName": "%s.%s" % (self.host_id, k), 
+                entry ={"ttlInSeconds": 86400, "collectionTime": ms,
+                        "metricName": "%s.%s" % (self.host_id, k),
                             "metricValue": v}
-                print entry
+                #print entry
                 self.queue.put(entry)
 
-class BluefloodWorker(object):
+class BluefloodWorker(Worker):
 
     def __init__(self, queue, client):
         self.queue = queue
         self.client = client
-        self.batch_size = 100
+        self.batch_size = 1000
 
     def work(self):
-        while True:
-            data = []
-            count = 0
-            for i in xrange(self.batch_size):
-                try:
-                    logger.debug("Blueflood Queue size is: %s " %
-                            self.queue.qsize())
-                    entry = self.queue.get(block=False)
-                    count = count + 1
-                    data.append(entry)
-                except eventlet.queue.Empty:
-                    time.sleep(1)
+        data = []
+        logger.info("Blueflood Queue size is: %s " % self.queue.qsize())
+        for i in xrange(self.batch_size):
+            try:
+                entry = self.queue.get(block=False)
+                data.append(entry)
+            except eventlet.queue.Empty:
+                time.sleep(1)
 
-            logger.info("Got %s docs" % len(data))
-            if data:
-                try:
-                    self.client.ingest(data)
-                    for i in xrange(len(data)):
-                        self.queue.task_done()
-                    logger.info("Processed %s entries to blueflood" % len(data))
-                except Exception as e:
-                    logger.exception(str(data))
-                    logger.exception("Error submitting to blueflood")
-                    raise e
-            time.sleep(1)
+        logger.info("Got %s docs" % len(data))
+        if data:
+            try:
+                start = utils.time_in_ms()
+                self.client.ingest(data)
+                for i in xrange(len(data)):
+                    self.queue.task_done()
+                time_taken = (utils.time_in_ms() - start)
+                logger.info("Processed %s entries to blueflood. Took %s ms \
+                            " % (len(data), time_taken))
+            except Exception as e:
+                logger.exception(str(data))
+                logger.exception("Error submitting to blueflood")

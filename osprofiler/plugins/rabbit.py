@@ -52,5 +52,4 @@ class Rabbit(pluginbase.PluginBase):
             d2 = {}
         d4 = dict(d0.items() + d1.items() + d2.items())
         logger.debug("%s " % d4)
-        logger.debug("Leaving " + self.__class__.__name__ + ".get_sample")
         return d4

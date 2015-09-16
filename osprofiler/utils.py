@@ -14,7 +14,13 @@ def time_in_ms():
     return int(time_in_s() * 1000.0)
 
 def host_identifier():
-    return "intel.%s" % socket.gethostname()
+    return "intel-cloud.%s" % socket.gethostname()
+
+def number_or_string(val):
+    try:
+        return int(val)
+    except ValueError:
+        return val
 
 def readConfig():
     """Read values from configuration file."""

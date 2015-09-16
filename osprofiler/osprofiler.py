@@ -79,9 +79,11 @@ class Application:
                     pool.spawn(plugin.execute)
                     time.sleep(0.1)
                     handlers.extend(plugin.handlers)
+        handlers = list(set(handlers))
         for handler in handlers:
             worker = handler.worker
-            pool.spawn(worker.work)
+            logger.info("Running worker %s " % worker)
+            pool.spawn(worker.execute)
             time.sleep(0.1)
 
         pool.waitall()

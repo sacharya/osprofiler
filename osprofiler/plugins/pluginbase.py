@@ -22,12 +22,14 @@ class PluginBase(object):
 
     def execute(self):
         while True:
-            logger.debug("Entering " + self.__class__.__name__ + ".get_sample")
-            data = self.get_sample()
-            for handler in self.handlers:
-                logger.info("Running %s for %s " % (str(handler),
-                    self.__class__.__name__))
-                handler.handle(data)
-            logger.debug("Leaving " + self.__class__.__name__ + ".get_sample")
-            time.sleep(self.config['push_interval'])
-            
+            try:
+                logger.debug("Entering " + self.__class__.__name__ + ".get_sample")
+                data = self.get_sample()
+                for handler in self.handlers:
+                    logger.info("Running %s for %s " % (str(handler),
+                        self.__class__.__name__))
+                    handler.handle(data)
+                logger.debug("Leaving " + self.__class__.__name__ + ".get_sample")
+                time.sleep(self.config['push_interval'])
+            except Exception as ex:
+                logger.warning("Exception running %s: %s" % (self.__class__.__name__ + ".get_sample", str(ex)))

@@ -78,7 +78,9 @@ class Mysql(pluginbase.PluginBase):
         entries = []
         ms = utils.time_in_ms()
         for i in show_status_list:
-            entry ={i.split('\t')[0]: i.split('\t')[1]}
+            val = i.split('\t')[1]
+            val = utils.number_or_string(val)
+            entry ={i.split('\t')[0]: val}
             sample['metrics'].append(entry)
         logger.debug(sample)
         return sample

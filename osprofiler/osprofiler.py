@@ -70,23 +70,26 @@ class Application:
         self.handlers = handlers
 
     def process(self):
-        pool = eventlet.greenpool.GreenPool()
-        handlers = []
-        for agent in self.config['agents']:
-            if agent['name'] in self.plugins:
-                plugin = self.plugins[agent['name']]
-                if plugin.handlers:
-                    pool.spawn(plugin.execute)
-                    time.sleep(0.1)
-                    handlers.extend(plugin.handlers)
-        handlers = list(set(handlers))
-        for handler in handlers:
-            worker = handler.worker
-            logger.info("Running worker %s " % worker)
-            pool.spawn(worker.execute)
-            time.sleep(0.1)
+        try:
+            pool = eventlet.greenpool.GreenPool()
+            handlers = []
+            for agent in self.config['agents']:
+                if agent['name'] in self.plugins:
+                    plugin = self.plugins[agent['name']]
+                    if plugin.handlers:
+                        pool.spawn(plugin.execute)
+                        time.sleep(0.1)
+                        handlers.extend(plugin.handlers)
+            handlers = list(set(handlers))
+            for handler in handlers:
+                worker = handler.worker
+                logger.info("Running worker %s " % worker)
+                pool.spawn(worker.execute)
+                time.sleep(0.1)
 
-        pool.waitall()
+            pool.waitall()
+        except Exception as ex:
+            logger.exception("Exception occured: %s" % str(ex))
 
 def main():
     config = utils.readConfig()

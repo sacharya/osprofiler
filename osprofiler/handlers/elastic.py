@@ -36,7 +36,7 @@ class ElasticSearchWorker(handler.Worker):
             try:
                 res = self.queue.get(block=False)
                 res.update(
-                    _index='suda-testing',
+                    _index='intelcloud',
                     _type='random'
                 )
                 docs.append(res)
@@ -46,6 +46,7 @@ class ElasticSearchWorker(handler.Worker):
         logger.info("Got %s docs" % len(docs))
         if docs:
             try:
+                logger.info(docs)
                 start = utils.time_in_ms()
                 count, extra = bulk(self.client, docs)
                 time_taken = (utils.time_in_ms() - start)

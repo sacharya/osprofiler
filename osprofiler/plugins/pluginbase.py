@@ -1,7 +1,6 @@
 import eventlet
 eventlet.monkey_patch()
 import log
-import handlers
 
 import time
 import utils

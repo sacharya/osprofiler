@@ -19,14 +19,20 @@ class ElasticSearchHandler(handler.Handler):
         self.worker = ElasticSearchWorker(self.queue, client)
 
     def handle(self, data):
-        self.queue.put(data)
+        if data is None:
+            return
+        if isinstance(data, list):
+            for d in data:
+                self.queue.put(d)
+        else:
+            self.queue.put(data)
 
 class ElasticSearchWorker(handler.Worker):
 
     def __init__(self, queue, client):
         self.queue = queue
         self.client = client
-        self.batch_size = 2
+        self.batch_size = 100
 
     def work(self):
         logger.info("ElasticSearch  Queue size is: %s " %
@@ -41,16 +47,16 @@ class ElasticSearchWorker(handler.Worker):
                 )
                 docs.append(res)
             except eventlet.queue.Empty:
-                time.sleep(1)
+                time.sleep(0.1)
 
-        logger.info("Got %s docs" % len(docs))
+        logger.info("Got %s elasticsearch docs" % len(docs))
         if docs:
             try:
-                logger.info(docs)
+                logger.debug(docs)
                 start = utils.time_in_ms()
                 count, extra = bulk(self.client, docs)
                 time_taken = (utils.time_in_ms() - start)
                 logger.info("Processed %s %s entries to elasticsearch. Took %s ms." % (count, extra, time_taken))
             except elasticsearch.exceptions.RequestError as e:
                 logger.exception("Error submitting to elasticsearch")
-
+                logger.exception(str(e))

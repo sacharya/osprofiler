@@ -6,8 +6,8 @@ from handler import Worker
 import time
 import utils
 
-from python_blueflood.client import Blueflood
-from python_blueflood.client import utils
+from bluefloodclient.client import Blueflood
+from bluefloodclient import utils
 
 logger = log.get_logger()
 

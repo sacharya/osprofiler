@@ -34,22 +34,28 @@ class Rabbit(pluginbase.PluginBase):
         self.queue.declare()
 
     def get_messages(self):
-        msg = self.queue.get()
-        if msg is None:
-            logger.debug("Empty queue")
-            return
-        return msg.payload
+        qsize = self.queue.queue_declare().message_count
+        msgs = []
+        batch = 10 if qsize < 1000 else 100
+        for i in xrange(batch):
+            msg = self.queue.get()
+            if msg is None:
+                #logger.debug("Empty queue")
+                break;
+            else:
+                msgs.append(msg.payload)
+                msg.ack()
+        return msgs
 
     def get_sample(self):
         self.connect("monitor.info")
-        d0 = {"node":"1", "timestamp":"123", "agent": "mysql"}
         d1 = self.get_messages()
-        if d1 is None:
-            d1 = {}
-        self.connect("notifications.info")
-        d2 = self.get_messages()
-        if d2 is None:
-            d2 = {}
-        d4 = dict(d0.items() + d1.items() + d2.items())
-        logger.debug("%s " % d4)
-        return d4
+        #if d1 is None:
+        #    d1 = {}
+        #self.connect("notifications.info")
+        #d2 = self.get_messages()
+        #if d2 is None:
+        #    d2 = {}
+        #d4 = dict(d1.items() + d2.items())
+        logger.debug("%s " % d1)
+        return d1

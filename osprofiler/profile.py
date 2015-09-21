@@ -92,6 +92,7 @@ class Application:
             logger.exception("Exception occured: %s" % str(ex))
 
 def main():
+    print "Inside profile.py main"
     config = utils.readConfig()
     app = Application(config)
     app.process()

@@ -5,7 +5,7 @@ import os
 DEFAULT_CONFIG = {
     'file': '/var/log/osprofiler/osprofiler',
     'level': 'info',
-    'format': '%(asctime)s - %(levelname)s - %(message)s',
+    'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
 }
 
 

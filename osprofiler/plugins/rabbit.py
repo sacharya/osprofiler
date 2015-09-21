@@ -46,10 +46,10 @@ class Rabbit(pluginbase.PluginBase):
                 msgs.append(msg.payload)
                 msg.ack()
         return msgs
-
+    
     def get_sample(self):
         self.connect("monitor.info")
-        d1 = self.get_messages()
+        data = self.get_messages()
         #if d1 is None:
         #    d1 = {}
         #self.connect("notifications.info")
@@ -57,5 +57,5 @@ class Rabbit(pluginbase.PluginBase):
         #if d2 is None:
         #    d2 = {}
         #d4 = dict(d1.items() + d2.items())
-        logger.debug("%s " % d1)
-        return d1
+        logger.debug("%s " % data)
+        return data

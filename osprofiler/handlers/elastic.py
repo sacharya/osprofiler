@@ -5,26 +5,34 @@ import time
 import utils
 
 import handler
+from datetime import datetime
 import elasticsearch
 from elasticsearch.helpers import bulk
 
 logger = log.get_logger()
+
+TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
 
 class ElasticSearchHandler(handler.Handler):
 
     def __init__(self, *args, **kwargs):
         super(ElasticSearchHandler, self).__init__(*args, **kwargs)
         self.queue = eventlet.queue.Queue()
-        client = elasticsearch.Elasticsearch(['192.168.4.22'])
+        client = elasticsearch.Elasticsearch(['192.168.4.36'])
         self.worker = ElasticSearchWorker(self.queue, client)
+
+    def date_to_ms(self, source):
+        return source['_context_timestamp'][:-3]
 
     def handle(self, data):
         if data is None:
             return
         if isinstance(data, list):
-            for d in data:
-                self.queue.put(d)
+            for doc in data:
+                doc.update(context_timestamp=self.date_to_ms(doc))
+                self.queue.put(doc)
         else:
+            data.update(context_timestamp=self.date_to_ms(ddta))
             self.queue.put(data)
 
 class ElasticSearchWorker(handler.Worker):
@@ -34,6 +42,10 @@ class ElasticSearchWorker(handler.Worker):
         self.client = client
         self.batch_size = 100
 
+    def date_from_context(self, source):
+        date = datetime.strptime(source['_context_timestamp'], TIME_FORMAT)
+        return date.strftime("%Y-%m-%d")
+
     def work(self):
         logger.info("ElasticSearch  Queue size is: %s " %
                     self.queue.qsize())
@@ -41,8 +53,9 @@ class ElasticSearchWorker(handler.Worker):
         for i in xrange(self.batch_size):
             try:
                 res = self.queue.get(block=False)
+                format_date = self.date_from_context(res)
                 res.update(
-                    _index='intelcloud',
+                    _index='intelcloud.%s' % format_date,
                     _type='random'
                 )
                 docs.append(res)

@@ -1,26 +1,30 @@
 import datetime
 import socket
-import time
 import yaml
 
 epoch = datetime.datetime.utcfromtimestamp(0)
 CONFIG_FILE = "/etc/osprofiler/osprofiler.conf"
 
+
 def time_in_s():
     delta = datetime.datetime.now() - epoch
     return delta.total_seconds()
 
+
 def time_in_ms():
     return int(time_in_s() * 1000.0)
 
+
 def host_identifier():
     return "intel-cloud.%s" % socket.gethostname()
+
 
 def number_or_string(val):
     try:
         return int(val)
     except ValueError:
         return val
+
 
 def readConfig():
     """Read values from configuration file."""

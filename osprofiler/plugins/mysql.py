@@ -14,15 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import handlers
-import log
+import logging
 import shlex
 import subprocess
 import utils
 import pluginbase
 
+logger = logging.getLogger('osprofiler.%s' % __name__)
 
-logger = log.get_logger()
 
 class Mysql(pluginbase.PluginBase):
 
@@ -31,14 +30,13 @@ class Mysql(pluginbase.PluginBase):
 
     def galera_status_check(self, arg):
         proc = subprocess.Popen(shlex.split(arg),
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            shell=False)
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                shell=False)
 
         out, err = proc.communicate()
         ret = proc.returncode
         return ret, out, err
-
 
     def generate_query(self, host, port):
         if host:
@@ -52,15 +50,15 @@ class Mysql(pluginbase.PluginBase):
             port = ''
 
         return ('/usr/bin/mysql --defaults-file=/home/stack/.my.cnf'
-            '%s%s -e "SHOW STATUS WHERE Variable_name REGEXP '
-            "'^(wsrep.*|Threads|queries)'\"") % (host, port)
+                '%s%s -e "SHOW STATUS WHERE Variable_name REGEXP '
+                "'^(wsrep.*|Threads|queries)'\"") % (host, port)
 
     def get_sample(self):
         sample = {
-                "hostname": self.host_id,
-                "agent_name": self.config['name'],
-                "metrics": list()
-                }
+            "hostname": self.host_id,
+            "agent_name": self.config['name'],
+            "metrics": list()
+        }
 
         host = "127.0.0.1"
         port = "3306"
@@ -72,15 +70,14 @@ class Mysql(pluginbase.PluginBase):
             logger.exception(str(err))
 
         if not output:
-            logger.exception('No output received from mysql. Cannot gather metrics.')
-            
+            raise Exception(
+                'No output received from mysql. Cannot gather metrics.')
+
         show_status_list = output.split('\n')[1:-1]
-        entries = []
-        ms = utils.time_in_ms()
         for i in show_status_list:
             val = i.split('\t')[1]
             val = utils.number_or_string(val)
-            entry ={i.split('\t')[0]: val}
+            entry = {i.split('\t')[0]: val}
             sample['metrics'].append(entry)
         logger.debug(sample)
         return sample

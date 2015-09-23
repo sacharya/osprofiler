@@ -1,9 +1,8 @@
-import handlers
 import kombu
-import log
+import logging
 import pluginbase
 
-logger = log.get_logger()
+logger = logging.getLogger('osprofiler.%s' % __name__)
 
 
 class Rabbit(pluginbase.PluginBase):
@@ -22,15 +21,17 @@ class Rabbit(pluginbase.PluginBase):
             port = 5672
         userid = self.config['auth']['username']
         password = self.config['auth']['password']
-        self.conn = kombu.BrokerConnection(hostname=hostname, port=port, 
-                userid=userid, password=password, 
-                virtual_host="/")
-        self.exchange = kombu.Exchange(name, type='topic', 
-                durable=False, channel=self.conn.channel())
+        self.conn = kombu.BrokerConnection(hostname=hostname, port=port,
+                                           userid=userid, password=password,
+                                           virtual_host="/")
+        self.exchange = kombu.Exchange(name, type='topic',
+                                       durable=False,
+                                       channel=self.conn.channel())
         routing_key = name
-        self.queue = kombu.Queue(name=routing_key, routing_key=routing_key, 
-                exchange=self.exchange, channel=self.conn.channel(), 
-                durable=False)
+        self.queue = kombu.Queue(name=routing_key, routing_key=routing_key,
+                                 exchange=self.exchange,
+                                 channel=self.conn.channel(),
+                                 durable=False)
         self.queue.declare()
 
     def get_messages(self):
@@ -40,22 +41,22 @@ class Rabbit(pluginbase.PluginBase):
         for i in xrange(batch):
             msg = self.queue.get()
             if msg is None:
-                #logger.debug("Empty queue")
-                break;
+                # logger.debug("Empty queue")
+                break
             else:
                 msgs.append(msg.payload)
                 msg.ack()
         return msgs
-    
+
     def get_sample(self):
         self.connect("monitor.info")
         data = self.get_messages()
-        #if d1 is None:
+        # if d1 is None:
         #    d1 = {}
-        #self.connect("notifications.info")
-        #d2 = self.get_messages()
-        #if d2 is None:
+        # self.connect("notifications.info")
+        # d2 = self.get_messages()
+        # if d2 is None:
         #    d2 = {}
-        #d4 = dict(d1.items() + d2.items())
+        # d4 = dict(d1.items() + d2.items())
         logger.debug("%s " % data)
         return data

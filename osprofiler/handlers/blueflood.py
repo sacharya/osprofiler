@@ -1,19 +1,18 @@
 import eventlet
 eventlet.monkey_patch()
-import log
+import logging
 from handler import Handler
 from handler import Worker
 import time
 import utils
 
 from bluefloodclient.client import Blueflood
-from bluefloodclient import utils
 
-logger = log.get_logger()
+logger = logging.getLogger('osprofiler.%s' % __name__)
 
 
 class BluefloodHandler(Handler):
-    
+
     def __init__(self, *args, **kwargs):
         super(BluefloodHandler, self).__init__(*args, **kwargs)
         auth_url = self.config['auth']['auth_url']
@@ -27,11 +26,13 @@ class BluefloodHandler(Handler):
         ms = utils.time_in_ms()
         for d in data.get('metrics'):
             for k, v in d.iteritems():
-                entry ={"ttlInSeconds": 86400, "collectionTime": ms,
-                        "metricName": "%s.%s" % (self.host_id, k),
-                            "metricValue": v}
-                #print entry
+                entry = {
+                    "ttlInSeconds": 86400, "collectionTime": ms,
+                    "metricName": "%s.%s" % (self.host_id, k),
+                    "metricValue": v
+                }
                 self.queue.put(entry)
+
 
 class BluefloodWorker(Worker):
 
@@ -60,6 +61,5 @@ class BluefloodWorker(Worker):
                 time_taken = (utils.time_in_ms() - start)
                 logger.info("Processed %s entries to blueflood. Took %s ms \
                             " % (len(data), time_taken))
-            except Exception as e:
-                logger.exception(str(data))
+            except Exception:
                 logger.exception("Error submitting to blueflood")

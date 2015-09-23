@@ -1,5 +1,4 @@
 kombu
-MySQLdb
 pyyaml
 elasticsearch
 psutil

@@ -1,9 +1,10 @@
 import datetime
+import logging
 import socket
 import yaml
 
+logger = logging.getLogger('osprofiler.%s' % __name__)
 epoch = datetime.datetime.utcfromtimestamp(0)
-CONFIG_FILE = "/etc/osprofiler/osprofiler.conf"
 
 
 def time_in_s():
@@ -26,14 +27,18 @@ def number_or_string(val):
         return val
 
 
-def readConfig():
-    """Read values from configuration file."""
+def read_config(file_):
+    """
+    Read values from configuration file.
+
+    @param file_ - String path of configuration file.
+    @returns - Dictionary
+
+    """
     try:
-        with open(CONFIG_FILE, 'r') as f:
+        with open(file_, 'r') as f:
             config = f.read()
-    except IOError:
-        print "Unable to read from the configuration file %s" % CONFIG_FILE
-    try:
         return yaml.load(config)
-    except yaml.parser.Error:
-        return "ERROR: Failed to read configuration file. Invalid yaml."
+    except Exception:
+        logger.exception("Unable to read configuration file %s" % file_)
+        raise

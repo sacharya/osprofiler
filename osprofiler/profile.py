@@ -5,11 +5,7 @@ import log
 import time
 import utils
 
-
-# GLOBAL CONSTANTS
-CONFIG_FILE = "/etc/osprofiler/osprofiler.conf"
-LOG_FILE = "/var/log/osprofiler.log"
-PLUGINS = "plugins"
+from args import get_args
 
 logger = log.get_logger('osprofiler')
 
@@ -91,7 +87,8 @@ class Application:
 
 
 def main():
-    config = utils.readConfig()
+    args = get_args()
+    config = utils.read_config(args.config)
     app = Application(config)
     app.process()
 

@@ -44,10 +44,9 @@ class PluginLoader:
             mod_name, class_name = full_name.split(".", 1)[1].rsplit(".", 1)
             mod = __import__(mod_name, fromlist=[class_name])
             klass = getattr(mod, class_name)
-            args = []
             kwargs = {"config": params, "handlers": handlers}
             logger.info("Loaded klass %s with kwargs %s " % (klass, kwargs))
-            return klass(*args, **kwargs)
+            return klass(**kwargs)
         except Exception as ex:
             logger.exception("Unable to load all plugins and handlers. Check \
                     your config.")
@@ -57,7 +56,6 @@ class PluginLoader:
 class Application:
     def __init__(self, config):
         self.config = config
-        self.push_interval = config['push_interval']
         loader = PluginLoader(config)
         plugins, handlers = loader.load_plugins()
         self.plugins = plugins

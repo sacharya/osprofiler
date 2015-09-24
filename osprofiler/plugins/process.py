@@ -13,72 +13,106 @@ class Process(pluginbase.PluginBase):
     must follow the agent module template.
     """
 
-    def __init__(self, *args, **kwargs):
-        super(Process, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super(Process, self).__init__(**kwargs)
+
+    def _stat_key(self, suffix, process):
+        """
+        Creates a dictionary key for a process with a suffix.
+        Will be in the format: {process_name}.{pid}.{suffix}
+
+        @param suffix - String
+        @param process - Process object
+        @returns - String
+
+        """
+        return "{process_name}.{pid}.{suffix}".format(
+            process_name=process.name(),
+            pid=process.pid,
+            suffix=suffix
+        )
 
     def _get_memory_stats(self, process):
-        memory = {}
-        name = process.name()
         memory_info = process.memory_info()
         memory_info_ex = process.memory_info_ex()
-        memory["process.%s.memory_info.rss" % name] = memory_info.rss
-        memory["process.%s.memory_info.vms" % name] = memory_info.vms
-        memory["process.%s.memory_percent" % name] = process.memory_percent()
-        memory["process.%s.memory_info_ex.rss" % name] = memory_info_ex.rss
-        memory["process.%s.memory_info_ex.vms" % name] = memory_info_ex.vms
-        return memory
+        percent = process.memory_percent()
+        return {
+            self._stat_key('memory_info.rss', process): memory_info.rss,
+            self._stat_key('memory_info.vms', process): memory_info.vms,
+            self._stat_key('memory_percent', process): percent,
+            self._stat_key('memory_info_ex.rss', process): memory_info_ex.rss,
+            self._stat_key('memory_info_ex.vms', process): memory_info_ex.vms
+        }
 
     def _get_cpu_stats(self, process):
-        cpu = {}
-        name = process.name()
-        cpu["process.%s.cpu_percent" % name] = process.cpu_percent()
-        # cpu["process.%s.cpu_affinity" % name] = process.cpu_affinity()
-        cpu["process.%s.cpu_times.user" % name] = process.cpu_times().user
-        cpu["process.%s.cpu_times.system" % name] = process.cpu_times().system
-        return cpu
+        cpu_times = process.cpu_times()
+        return {
+            self._stat_key('cpu_percent', process): process.cpu_percent(),
+            self._stat_key('cpu_times.user', process): cpu_times.user,
+            self._stat_key('cpu_times.system', process): cpu_times.system
+        }
 
-    def _get_proc_obj(self, process_name):
+    def _should_get_metric(self, metric):
+        """
+        Returns whether or not to grab a metric like cpu or memory
+
+        @param metric - String name of a metric: 'cpu', 'memory'
+        @return bool
+        """
+        metrics = self.config.get('metrics', [])
+        if not metrics:
+            return True
+        return metric in metrics
+
+    def _get_proc_obj(self):
         """
         This function returns the process' corresponding object.
-
-        :param process_name: ```str``` The name of the service that we want
-                                       to find the process object for.
 
         :returns: ```obj``` The process object that corresponds to the name.
 
         :returns: ```list of obj``` A list of process objects that
                                     correspond to the name.
         """
-
+        filters = self.config.get('filters')
         proc_list = list()
-        for proc in psutil.process_iter():
-            try:
-                # pinfo = proc.as_dict(attrs=['name', 'pid'])
-                # if pinfo['name'] == process_name:
-                proc_list.append(proc)
-            except psutil.NoSuchProcess as ex:
-                print str(ex)
+
+        if filters:
+            for proc in psutil.process_iter():
+                try:
+                    for f in filters:
+                        if f in proc.name():
+                            proc_list.append(proc)
+                            break
+                except psutil.NoSuchProcess:
+                    logger.exception("Error occurred obtaining process.")
                 pass
+        else:
+            for proc in psutil.process_iter():
+                try:
+                    proc_list.append(proc)
+                except psutil.NoSuchProcess:
+                    logger.exception("Error occurred obtaining process.")
+                    pass
         return proc_list
 
     def get_sample(self):
         sample = {
             "hostname": os.uname()[1],
-            "agent_name": self.config['name'],
+            "agent_name": self.config.get('name', 'process'),
             "metrics": list()
             }
 
-        proc_obj_list = self._get_proc_obj(self.config['process_name'])
+        proc_obj_list = self._get_proc_obj()
         for proc_obj in proc_obj_list:
             if proc_obj is not None:
                 try:
-                    memory = self._get_memory_stats(proc_obj)
-                    cpu = self._get_cpu_stats(proc_obj)
-                    mydict = cpu.copy()
-                    mydict.update(memory)
-                    sample['metrics'].append(mydict)
-                except psutil.NoSuchProcess as ex:
-                    print str(ex)
+                    sample_dict = {}
+                    if self._should_get_metric('memory'):
+                        sample_dict.update(self._get_memory_stats(proc_obj))
+                    if self._should_get_metric('cpu'):
+                        sample_dict.update(self._get_cpu_stats(proc_obj))
+                    sample['metrics'].append(sample_dict)
+                except psutil.NoSuchProcess:
+                    logger.exception("Error sampling process information")
                     pass
-        # logger.info(sample)
         return sample

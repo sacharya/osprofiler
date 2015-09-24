@@ -25,7 +25,6 @@ class Worker(object):
                 logger.info("Entering " + self.__class__.__name__ + ".work")
                 self.work()
                 logger.info("Leaving " + self.__class__.__name__ + ".work")
-                raise Exception("Testing exception")
             except Exception:
                 logger.warning("Exception running %s.work:" %
                                (self.__class__.__name__), exc_info=True)

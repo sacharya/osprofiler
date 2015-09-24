@@ -1,6 +1,7 @@
 import logging
 import logging.handlers
 import os
+import yaml
 
 DEFAULT_CONFIG = {
     'file': '/var/log/osprofiler/osprofiler',
@@ -31,8 +32,9 @@ def get_logger(name='osprofiler'):
     """
     return logging.getLogger(name)
 
+
 def load_config(filename, default=None):
-    try :
+    try:
         with open(filename, 'r') as f:
             diff = yaml.load(f)
             if diff is not None:

@@ -1,6 +1,6 @@
 import eventlet
 eventlet.monkey_patch()
-import log
+import logging
 import time
 import utils
 
@@ -9,9 +9,10 @@ from datetime import datetime
 import elasticsearch
 from elasticsearch.helpers import bulk
 
-logger = log.get_logger()
 
+logger = logging.getLogger('osprofiler.%s' % __name__)
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
+
 
 class ElasticSearchHandler(handler.Handler):
 
@@ -32,8 +33,9 @@ class ElasticSearchHandler(handler.Handler):
                 doc.update(context_timestamp=self.date_to_ms(doc))
                 self.queue.put(doc)
         else:
-            data.update(context_timestamp=self.date_to_ms(ddta))
+            data.update(context_timestamp=self.date_to_ms(data))
             self.queue.put(data)
+
 
 class ElasticSearchWorker(handler.Worker):
 
@@ -69,7 +71,7 @@ class ElasticSearchWorker(handler.Worker):
                 start = utils.time_in_ms()
                 count, extra = bulk(self.client, docs)
                 time_taken = (utils.time_in_ms() - start)
-                logger.info("Processed %s %s entries to elasticsearch. Took %s ms." % (count, extra, time_taken))
-            except elasticsearch.exceptions.RequestError as e:
+                logger.info("Processed %s %s entries to elasticsearch. "
+                            "Took %s ms." % (count, extra, time_taken))
+            except elasticsearch.exceptions.RequestError:
                 logger.exception("Error submitting to elasticsearch")
-                logger.exception(str(e))

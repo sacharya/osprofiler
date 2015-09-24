@@ -1,9 +1,9 @@
-import log
-import os
+import logging
 import psutil
 import pluginbase
 
-logger = log.get_logger()
+logger = logging.getLogger('osprofiler.%s' % __name__)
+
 
 class System(pluginbase.PluginBase):
     """
@@ -16,7 +16,8 @@ class System(pluginbase.PluginBase):
         super(System, self).__init__(*args, **kwargs)
 
     def get_network_stats(self):
-        active_conns = [conn for conn in psutil.net_connections() if conn.status == "ESTABLISHED"]
+        active_conns = [conn for conn in psutil.net_connections()
+                        if conn.status == "ESTABLISHED"]
         network = {}
         network['system.net_connections.active'] = len(active_conns)
         for key, value in psutil.net_io_counters().__dict__.items():
@@ -43,13 +44,13 @@ class System(pluginbase.PluginBase):
         for key, value in psutil.disk_usage("/").__dict__.items():
             disk["system.disk_usage.%s" % key] = value
         for key, value in psutil.disk_io_counters().__dict__.items():
-             disk["system.disk_io_counters.%s" % key] = value
-        #for key, value in psutil.disk_partitions().__dict__.items():
+            disk["system.disk_io_counters.%s" % key] = value
+        # for key, value in psutil.disk_partitions().__dict__.items():
         #    disk["system.disk_usage.%s" % key] = value
         return disk
 
     def get_sample(self):
-        sample = { 
+        sample = {
             "hostname": self.host_id,
             "agent_name": self.config['name'],
             "metrics": list()

@@ -2,9 +2,6 @@
 import eventlet
 eventlet.monkey_patch()
 import log
-import os
-import psutil
-import sys
 import time
 import utils
 
@@ -14,7 +11,7 @@ CONFIG_FILE = "/etc/osprofiler/osprofiler.conf"
 LOG_FILE = "/var/log/osprofiler.log"
 PLUGINS = "plugins"
 
-logger = log.get_logger()
+logger = log.get_logger('osprofiler')
 
 
 class PluginLoader:
@@ -38,11 +35,11 @@ class PluginLoader:
         for agent in self.agent_list:
             handlers = []
             if 'handlers' in agent:
-                handler_keys = agent['handlers']
                 for handler in agent['handlers'].split(","):
                     handler = backend_dict[handler]
                     handlers.append(handler)
-            agent_dict[agent['name']] = self.load_object(agent, handlers=handlers)
+            agent_dict[agent['name']] = self.load_object(agent,
+                                                         handlers=handlers)
         return [agent_dict, backend_dict]
 
     def load_object(self, params, handlers=None):
@@ -52,13 +49,14 @@ class PluginLoader:
             mod = __import__(mod_name, fromlist=[class_name])
             klass = getattr(mod, class_name)
             args = []
-            kwargs = {"config":params, "handlers":handlers}
+            kwargs = {"config": params, "handlers": handlers}
             logger.info("Loaded klass %s with kwargs %s " % (klass, kwargs))
             return klass(*args, **kwargs)
         except Exception as ex:
             logger.exception("Unable to load all plugins and handlers. Check \
                     your config.")
             raise ex
+
 
 class Application:
     def __init__(self, config):
@@ -91,8 +89,8 @@ class Application:
         except Exception as ex:
             logger.exception("Exception occured: %s" % str(ex))
 
+
 def main():
-    print "Inside profile.py main"
     config = utils.readConfig()
     app = Application(config)
     app.process()

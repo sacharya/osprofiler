@@ -1,7 +1,7 @@
-import log
+import logging
 import utils
 
-logger = log.get_logger()
+logger = logging.getLogger('osprofiler.%s' % __name__)
 
 
 class Handler(object):
@@ -9,6 +9,7 @@ class Handler(object):
     def __init__(self, *args, **kwargs):
         self.config = kwargs.get('config')
         self.host_id = utils.host_identifier()
+
 
 class Worker(object):
 
@@ -21,8 +22,9 @@ class Worker(object):
     def execute(self):
         while True:
             try:
-                logger.info("Entering " + self.__class__.__name__ +".work")
+                logger.info("Entering " + self.__class__.__name__ + ".work")
                 self.work()
                 logger.info("Leaving " + self.__class__.__name__ + ".work")
-            except Exception as ex:
-                logger.warning("Exception running %s: %s" % (self.__class__.__name__+ ".work", str(ex)))
+            except Exception:
+                logger.warning("Exception running %s.work:" %
+                               (self.__class__.__name__), exc_info=True)

@@ -1,12 +1,12 @@
 import eventlet
 eventlet.monkey_patch()
-import log
 
+import logging
 import time
-import utils
 
+from osprofiler import utils
 
-logger = log.get_logger()
+logger = logging.getLogger('osprofiler.%s' % __name__)
 
 
 class PluginBase(object):
@@ -22,13 +22,17 @@ class PluginBase(object):
     def execute(self):
         while True:
             try:
-                logger.debug("Entering " + self.__class__.__name__ + ".get_sample")
+                logger.debug("Entering %s.get_sample"
+                             % self.__class__.__name__)
                 data = self.get_sample()
                 for handler in self.handlers:
-                    logger.info("Running %s for %s " % (str(handler),
-                        self.__class__.__name__))
+                    logger.info("Running %s for %s " %
+                                (str(handler), self.__class__.__name__))
                     handler.handle(data)
-                logger.debug("Leaving " + self.__class__.__name__ + ".get_sample")
-                time.sleep(self.config['push_interval'])
-            except Exception as ex:
-                logger.warning("Exception running %s: %s" % (self.__class__.__name__ + ".get_sample", str(ex)))
+                logger.debug("Leaving %s.get_sample" %
+                             self.__class__.__name__)
+            except Exception:
+                logger.exception("Exception running %s.get_sample" %
+                                 self.__class__.__name__)
+
+            time.sleep(self.config['push_interval'])

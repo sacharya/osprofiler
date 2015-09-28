@@ -44,15 +44,15 @@ class TestPluginBase(unittest.TestCase):
         loop. TestException should break the loop.
 
         """
-        default_push_interval = 5
+        default_sample_interval = 5
         plugin = PluginBase()
         self.assertRaises(TestException, plugin.execute)
-        sleep_function.assert_called_with(default_push_interval)
+        sleep_function.assert_called_with(default_sample_interval)
 
-        config = {'push_interval': 100}
+        config = {'sample_interval': 100}
         plugin = PluginBase(config=config)
         self.assertRaises(TestException, plugin.execute)
-        sleep_function.assert_called_with(config['push_interval'])
+        sleep_function.assert_called_with(config['sample_interval'])
 
     @mock.patch('time.sleep', side_effect=raise_test_exception)
     def test_get_sample_and_handler(self, sleep_function):

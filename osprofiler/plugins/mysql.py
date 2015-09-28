@@ -25,8 +25,8 @@ logger = logging.getLogger('osprofiler.%s' % __name__)
 
 class Mysql(pluginbase.PluginBase):
 
-    def __init__(self, *args, **kwargs):
-        super(Mysql, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super(Mysql, self).__init__(**kwargs)
 
     def galera_status_check(self, arg):
         proc = subprocess.Popen(shlex.split(arg),

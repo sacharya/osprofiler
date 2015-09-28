@@ -12,8 +12,8 @@ class System(pluginbase.PluginBase):
     sent to database backend.
     """
     # TODO: List methods of this class, and write a more detailed description.
-    def __init__(self, *args, **kwargs):
-        super(System, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super(System, self).__init__(**kwargs)
 
     def get_network_stats(self):
         active_conns = [conn for conn in psutil.net_connections()

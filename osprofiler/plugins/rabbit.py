@@ -7,8 +7,8 @@ logger = logging.getLogger('osprofiler.%s' % __name__)
 
 class Rabbit(pluginbase.PluginBase):
 
-    def __init__(self, *args, **kwargs):
-        super(Rabbit, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super(Rabbit, self).__init__(**kwargs)
 
     def connect(self, name):
         if 'host' in self.config['auth']:

@@ -37,4 +37,4 @@ class PluginBase(object):
                 logger.exception("Exception running %s.get_sample" %
                                  self.__class__.__name__)
 
-            time.sleep(self.config.get('push_interval', 5))
+            time.sleep(self.config.get('sample_interval', 5))

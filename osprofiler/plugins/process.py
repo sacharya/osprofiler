@@ -16,7 +16,7 @@ class Process(pluginbase.PluginBase):
     def __init__(self, **kwargs):
         super(Process, self).__init__(**kwargs)
 
-    def _stat_key(self, suffix, process):
+    def metric_name(self, suffix, process):
         """
         Creates a dictionary key for a process with a suffix.
         Will be in the format: {process_name}.{pid}.{suffix}
@@ -26,30 +26,33 @@ class Process(pluginbase.PluginBase):
         @returns - String
 
         """
-        return "{process_name}.{pid}.{suffix}".format(
+        suffix = "{process_name}.{pid}.{suffix}".format(
             process_name=process.name(),
             pid=process.pid,
             suffix=suffix
         )
+        return super(Process, self).metric_name(suffix)
 
     def _get_memory_stats(self, process):
         memory_info = process.memory_info()
         memory_info_ex = process.memory_info_ex()
         percent = process.memory_percent()
         return {
-            self._stat_key('memory_info.rss', process): memory_info.rss,
-            self._stat_key('memory_info.vms', process): memory_info.vms,
-            self._stat_key('memory_percent', process): percent,
-            self._stat_key('memory_info_ex.rss', process): memory_info_ex.rss,
-            self._stat_key('memory_info_ex.vms', process): memory_info_ex.vms
+            self.metric_name('memory_info.rss', process): memory_info.rss,
+            self.metric_name('memory_info.vms', process): memory_info.vms,
+            self.metric_name('memory_percent', process): percent,
+            self.metric_name('memory_info_ex.rss',
+                             process): memory_info_ex.rss,
+            self.metric_name('memory_info_ex.vms',
+                             process): memory_info_ex.vms
         }
 
     def _get_cpu_stats(self, process):
         cpu_times = process.cpu_times()
         return {
-            self._stat_key('cpu_percent', process): process.cpu_percent(),
-            self._stat_key('cpu_times.user', process): cpu_times.user,
-            self._stat_key('cpu_times.system', process): cpu_times.system
+            self.metric_name('cpu_percent', process): process.cpu_percent(),
+            self.metric_name('cpu_times.user', process): cpu_times.user,
+            self.metric_name('cpu_times.system', process): cpu_times.system
         }
 
     def _should_get_metric(self, metric):

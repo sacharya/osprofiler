@@ -1,4 +1,5 @@
 import mock
+import socket
 import unittest
 
 import base
@@ -58,39 +59,41 @@ class TestPluginProcess(unittest.TestCase):
     Tests for the process plugin
 
     """
-    def test_memory_stats(self):
+    @mock.patch('socket.gethostname', return_value='testhost')
+    def test_memory_stats(self, mocked_function):
         """
         Test memory stats
 
         """
-        plugin = Process()
+        plugin = Process(config={'name': 'process'})
         fake_process = FakeProcess('test')
         memory_stats = plugin._get_memory_stats(fake_process)
         self.assertTrue(isinstance(memory_stats, dict))
         expected = {
-            'test.1.memory_percent': 1,
-            'test.1.memory_info.rss': 2,
-            'test.1.memory_info.vms': 3,
-            'test.1.memory_info_ex.rss': 4,
-            'test.1.memory_info_ex.vms': 5
+            'testhost.process.test.1.memory_percent': 1,
+            'testhost.process.test.1.memory_info.rss': 2,
+            'testhost.process.test.1.memory_info.vms': 3,
+            'testhost.process.test.1.memory_info_ex.rss': 4,
+            'testhost.process.test.1.memory_info_ex.vms': 5
         }
         for key, value in expected.iteritems():
             self.assertTrue(key in memory_stats)
             self.assertEquals(memory_stats[key], value)
 
-    def test_cpu_stats(self):
+    @mock.patch('socket.gethostname', return_value='testhost')
+    def test_cpu_stats(self, mocked_function):
         """
         Test CPU stats
 
         """
-        plugin = Process()
+        plugin = Process(config={'name': 'process'})
         fake_process = FakeProcess('test')
         cpu_stats = plugin._get_cpu_stats(fake_process)
         self.assertTrue(isinstance(cpu_stats, dict))
         expected = {
-            'test.1.cpu_percent': 11,
-            'test.1.cpu_times.user': 12,
-            'test.1.cpu_times.system': 13
+            'testhost.process.test.1.cpu_percent': 11,
+            'testhost.process.test.1.cpu_times.user': 12,
+            'testhost.process.test.1.cpu_times.system': 13
         }
         for key, value in expected.iteritems():
             self.assertTrue(key in cpu_stats)

@@ -1,12 +1,12 @@
 import eventlet
 eventlet.monkey_patch()
 import logging
-from handler import Handler
-from handler import Worker
 import time
-import utils
 
 from bluefloodclient.client import Blueflood
+
+from osprofiler import utils
+from handler import Handler, Worker
 
 logger = logging.getLogger('osprofiler.%s' % __name__)
 
@@ -28,7 +28,7 @@ class BluefloodHandler(Handler):
             for k, v in d.iteritems():
                 entry = {
                     "ttlInSeconds": 86400, "collectionTime": ms,
-                    "metricName": "%s.%s" % (self.host_id, k),
+                    "metricName": k,
                     "metricValue": v
                 }
                 self.queue.put(entry)

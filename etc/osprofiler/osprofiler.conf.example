@@ -2,7 +2,8 @@
 
 agents:
   - plugin: osprofiler.plugins.mysql.Mysql
-    name: "mysqlagent1"
+    name: "mysql"
+    prefix: somecloud
     metrics:
       - num_connections
     auth:
@@ -11,7 +12,8 @@ agents:
     sample_interval: 2
 
   - plugin: osprofiler.plugins.rabbit.Rabbit
-    name: "rabbitagent1"
+    name: "rabbit"
+    prefix: somecloud
     metrics:
       - num_requests
       - num_connections
@@ -21,7 +23,8 @@ agents:
     sample_interval: 2
 
   - plugin: osprofiler.plugins.system.System
-    name: "systemagent1"
+    name: "system"
+    prefix: somecloud
     metrics:
       - network
       - cpu
@@ -32,6 +35,10 @@ agents:
 
     # Name of the process agent
     name: "process"
+
+    # Optional prefix. Defaults to ''
+    # Metric names will be reported as '{prefix}.{hostname}.{restofmetric}
+    prefix: somecloud
 
     # Optionally include a list of process filters.
     # All processes will be returned without filters
@@ -57,6 +64,3 @@ backend:
       user: "root"
       password: "password"
       auth_url: "10.245.1.4"
-    
-
-

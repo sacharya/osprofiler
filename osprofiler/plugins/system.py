@@ -19,34 +19,32 @@ class System(pluginbase.PluginBase):
         active_conns = [conn for conn in psutil.net_connections()
                         if conn.status == "ESTABLISHED"]
         network = {}
-        network['system.net_connections.active'] = len(active_conns)
+        network[self.metric_name('net_connections.active')] = len(active_conns)
         for key, value in psutil.net_io_counters().__dict__.items():
-            network["system.net_io_counters.%s" % key] = value
+            network[self.metric_name("net_io_counters.%s" % key)] = value
         return network
 
     def get_cpu_stats(self):
         cpu = {}
         for key, value in psutil.cpu_times_percent().__dict__.items():
-            cpu["system.cpu_times.percent.%s" % key] = value
-        cpu["system.cpu.percent"] = psutil.cpu_percent()
+            cpu[self.metric_name("cpu_times.percent.%s" % key)] = value
+        cpu[self.metric_name("cpu.percent")] = psutil.cpu_percent()
         return cpu
 
     def get_memory_stats(self):
         memory = {}
         for key, value in psutil.virtual_memory().__dict__.items():
-            memory["system.virtual_memory.%s" % key] = value
+            memory[self.metric_name("virtual_memory.%s" % key)] = value
         for key, value in psutil.swap_memory().__dict__.items():
-            memory["system.swap_memory.%s" % key] = value
+            memory[self.metric_name("swap_memory.%s" % key)] = value
         return memory
 
     def get_disk_stats(self):
         disk = {}
         for key, value in psutil.disk_usage("/").__dict__.items():
-            disk["system.disk_usage.%s" % key] = value
+            disk[self.metric_name("disk_usage./.%s" % key)] = value
         for key, value in psutil.disk_io_counters().__dict__.items():
-            disk["system.disk_io_counters.%s" % key] = value
-        # for key, value in psutil.disk_partitions().__dict__.items():
-        #    disk["system.disk_usage.%s" % key] = value
+            disk[self.metric_name("disk_io_counters.%s" % key)] = value
         return disk
 
     def get_sample(self):
@@ -64,5 +62,4 @@ class System(pluginbase.PluginBase):
         mydict.update(cpu)
         mydict.update(disk)
         sample['metrics'].append(mydict)
-        logger.info(sample)
         return sample

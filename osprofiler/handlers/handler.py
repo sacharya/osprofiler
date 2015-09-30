@@ -1,5 +1,5 @@
 import logging
-import utils
+from osprofiler import utils
 
 logger = logging.getLogger('osprofiler.%s' % __name__)
 

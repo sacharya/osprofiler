@@ -17,8 +17,9 @@
 import logging
 import shlex
 import subprocess
-import utils
 import pluginbase
+
+from osprofiler import utils
 
 logger = logging.getLogger('osprofiler.%s' % __name__)
 
@@ -56,7 +57,7 @@ class Mysql(pluginbase.PluginBase):
     def get_sample(self):
         sample = {
             "hostname": self.host_id,
-            "agent_name": self.config['name'],
+            "agent_name": self.config.get('name', 'mysql'),
             "metrics": list()
         }
 
@@ -67,17 +68,15 @@ class Mysql(pluginbase.PluginBase):
         )
 
         if retcode > 0:
-            logger.exception(str(err))
+            logger.error(str(err))
 
         if not output:
             raise Exception(
                 'No output received from mysql. Cannot gather metrics.')
 
         show_status_list = output.split('\n')[1:-1]
-        for i in show_status_list:
-            val = i.split('\t')[1]
+        for line in show_status_list:
+            key, val = line.rsplit("\t", 1)
             val = utils.number_or_string(val)
-            entry = {i.split('\t')[0]: val}
-            sample['metrics'].append(entry)
-        logger.debug(sample)
+            sample['metrics'].append({self.metric_name(key): val})
         return sample

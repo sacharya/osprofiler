@@ -1,5 +1,6 @@
-import unittest
 import mock
+import socket
+import unittest
 
 import base
 from osprofiler.plugins.pluginbase import PluginBase, PluginException
@@ -72,3 +73,25 @@ class TestPluginBase(unittest.TestCase):
         self.assertRaises(TestException, plugin.execute)
         assert plugin.get_sample.called
         handler.handle.assert_called_with(10)
+
+    @mock.patch('socket.gethostname', return_value='testhost')
+    def test_metric_name(self, mocked_function):
+        """
+        Tests metric name method with default prefix and non default
+
+        """
+        # Test defaults - No prefix and name should default to 'agent'
+        plugin = PluginBase()
+        expected = "testhost.agent.suffix"
+        name = plugin.metric_name('suffix')
+        self.assertEquals(name, expected)
+
+        # Test prefix - no name
+        plugin = PluginBase(config={'prefix': 'prefix'})
+        expected = "prefix.testhost.agent.suffix"
+        self.assertEquals(plugin.metric_name('suffix'), expected)
+
+        # Test name - no prefix
+        plugin = PluginBase(config={'name': 'testagent'})
+        expected = "testhost.testagent.suffix"
+        self.assertEquals(plugin.metric_name('suffix'), expected)

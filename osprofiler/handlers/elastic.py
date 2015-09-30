@@ -1,8 +1,8 @@
 import eventlet
-eventlet.monkey_patch()
 import logging
 import time
-import utils
+
+from osprofiler import utils
 
 import handler
 from datetime import datetime
@@ -62,7 +62,7 @@ class ElasticSearchWorker(handler.Worker):
                 )
                 docs.append(res)
             except eventlet.queue.Empty:
-                time.sleep(0.1)
+                break
 
         logger.info("Got %s elasticsearch docs" % len(docs))
         if docs:
@@ -75,3 +75,6 @@ class ElasticSearchWorker(handler.Worker):
                             "Took %s ms." % (count, extra, time_taken))
             except elasticsearch.exceptions.RequestError:
                 logger.exception("Error submitting to elasticsearch")
+
+        if len(docs) < self.batch_size:
+            time.sleep(1)

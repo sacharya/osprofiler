@@ -1,7 +1,5 @@
-import eventlet
-eventlet.monkey_patch()
-
 import logging
+import pprint
 import socket
 import time
 
@@ -45,7 +43,10 @@ class PluginBase(object):
     def execute(self):
         while True:
             try:
+                logger.info("Gonna get sample for %s" % self.config.get('name'))
                 data = self.get_sample()
+                logger.info(pprint.pformat(data))
+                logger.info("Got get sample for %s" % self.config.get('name'))
                 for handler in self.handlers:
                     handler.handle(data)
             except Exception:

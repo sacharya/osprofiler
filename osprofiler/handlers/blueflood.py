@@ -1,5 +1,4 @@
 import eventlet
-eventlet.monkey_patch()
 import logging
 import time
 
@@ -49,7 +48,7 @@ class BluefloodWorker(Worker):
                 entry = self.queue.get(block=False)
                 data.append(entry)
             except eventlet.queue.Empty:
-                time.sleep(1)
+                break
 
         logger.info("Got %s docs" % len(data))
         if data:
@@ -63,3 +62,7 @@ class BluefloodWorker(Worker):
                             " % (len(data), time_taken))
             except Exception:
                 logger.exception("Error submitting to blueflood")
+
+        # Sleep if we hit the empty queue
+        if len(data) < self.batch_size:
+            time.sleep(1)

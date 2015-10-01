@@ -78,5 +78,8 @@ class Mysql(pluginbase.PluginBase):
         for line in show_status_list:
             key, val = line.rsplit("\t", 1)
             val = utils.number_or_string(val)
-            sample['metrics'].append({self.metric_name(key): val})
+            sample['metrics'].append({
+                'name': self.metric_name(key),
+                'value': val
+            })
         return sample

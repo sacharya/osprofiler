@@ -19,8 +19,12 @@ class ElasticSearchHandler(handler.Handler):
     def __init__(self, *args, **kwargs):
         super(ElasticSearchHandler, self).__init__(*args, **kwargs)
         self.queue = eventlet.queue.Queue()
-        client = elasticsearch.Elasticsearch(['192.168.4.36'])
-        self.worker = ElasticSearchWorker(self.queue, client)
+        client = elasticsearch.Elasticsearch(
+            [self.config.get('host', 'localhost')]
+        )
+        self.worker = ElasticSearchWorker(self.queue,
+                                          client,
+                                          config=self.config)
 
     def date_to_ms(self, source):
         return source['_context_timestamp'][:-3]
@@ -39,10 +43,14 @@ class ElasticSearchHandler(handler.Handler):
 
 class ElasticSearchWorker(handler.Worker):
 
-    def __init__(self, queue, client):
+    def __init__(self, queue, client, config=None):
+        if config is None:
+            config = {}
         self.queue = queue
         self.client = client
-        self.batch_size = 100
+        self.batch_size = config.get('batch_size', 100)
+        self.index_prefix = config.get('index_prefix', 'yourcloud')
+        self.index_type = config.get('index_type', 'event')
 
     def date_from_context(self, source):
         date = datetime.strptime(source['_context_timestamp'], TIME_FORMAT)
@@ -57,8 +65,8 @@ class ElasticSearchWorker(handler.Worker):
                 res = self.queue.get(block=False)
                 format_date = self.date_from_context(res)
                 res.update(
-                    _index='intelcloud.%s' % format_date,
-                    _type='random'
+                    _index='%s.%s' % (self.index_prefix, format_date),
+                    _type=self.index_type
                 )
                 docs.append(res)
             except eventlet.queue.Empty:

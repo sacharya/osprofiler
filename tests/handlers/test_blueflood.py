@@ -27,27 +27,31 @@ class TestBluefloodHandler(unittest.TestCase):
     }
 
     @mock.patch('osprofiler.handlers.blueflood.Blueflood')
-    def test_handle_data_simple(self, *mocked):
+    def test_handle(self, *mocked):
         handler = blueflood.BluefloodHandler(config=self.mock_config)
         handler.queue.put = mock.Mock(side_effect=side_effect_data)
-        expected = {
-            'sample.metric.1': 1,
-            'sample.metric.2': 2,
-            'sample.metric.3': 3,
-            'sample.metric.4': 4
-        }
+        expected = [
+            {
+                'name': 'sample.metric.1',
+                'value': 1,
+                'units': 'nonsenses'
+            },
+            {
+                'name': 'sample.metric.2',
+                'value': 2
+            }
+        ]
         sample = {
             'metrics': [
                 {
-                    'sample.metric.1': 1,
-                    'sample.metric.2': 2
+                    'name': 'sample.metric.1',
+                    'value': 1,
+                    'units': 'nonsenses'
                 },
                 {
-                    'sample.metric.3': 3
+                    'name': 'sample.metric.2',
+                    'value': 2
                 },
-                {
-                    'sample.metric.4': 4
-                }
             ]
         }
         handler.handle(sample)
@@ -55,8 +59,15 @@ class TestBluefloodHandler(unittest.TestCase):
             metric_dict = call[0][0]
             name = metric_dict['metricName']
             value = metric_dict['metricValue']
-            self.assertTrue('ttlInSeconds' in metric_dict)
-            self.assertTrue('collectionTime' in metric_dict)
-            self.assertTrue('metricName' in metric_dict)
-            self.assertTrue(name in expected)
-            self.assertEquals(value, expected[name])
+
+            for e_metric in expected:
+                if e_metric['name'] == name:
+                    self.assertTrue('ttlInSeconds' in metric_dict)
+                    self.assertTrue('collectionTime' in metric_dict)
+                    self.assertTrue('metricName' in metric_dict)
+                    self.assertEquals(value, e_metric['value'])
+                    self.assertEquals(e_metric.get('units'),
+                                      metric_dict.get('unit'))
+                    break
+            else:
+                self.fail("Metric %s not found in expected" % name)

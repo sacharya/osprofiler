@@ -24,13 +24,14 @@ class BluefloodHandler(Handler):
     def handle(self, data):
         ms = utils.time_in_ms()
         for d in data.get('metrics'):
-            for k, v in d.iteritems():
-                entry = {
-                    "ttlInSeconds": 86400, "collectionTime": ms,
-                    "metricName": k,
-                    "metricValue": v
-                }
-                self.queue.put(entry)
+            entry = {
+                "ttlInSeconds": 86400, "collectionTime": ms,
+                "metricName": d['name'],
+                "metricValue": d['value']
+            }
+            if d.get('units'):
+                entry.update(unit=d.get('units'))
+            self.queue.put(entry)
 
 
 class BluefloodWorker(Worker):

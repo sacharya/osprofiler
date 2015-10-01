@@ -49,6 +49,7 @@ class Rabbit(pluginbase.PluginBase):
         return msgs
 
     def get_sample(self):
+        logger.info("Rabbit sampling")
         self.connect("monitor.info")
         data = self.get_messages()
         # if d1 is None:

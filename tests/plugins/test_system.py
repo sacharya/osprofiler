@@ -128,90 +128,267 @@ class TestPluginSystem(unittest.TestCase):
 
         """
         plugin = System(config={'name': 'system'})
-        expected = {
-            'testhost.system.net_connections.active': 5,
-            'testhost.system.net_io_counters.bytes_sent': 1,
-            'testhost.system.net_io_counters.bytes_recv': 2,
-            'testhost.system.net_io_counters.packets_sent': 3,
-            'testhost.system.net_io_counters.packets_recv': 4,
-            'testhost.system.net_io_counters.errin': 5,
-            'testhost.system.net_io_counters.errout': 6,
-            'testhost.system.net_io_counters.dropin': 7,
-            'testhost.system.net_io_counters.dropout': 8
-        }
-        stats = plugin.get_network_stats()
-        for key, value in stats.iteritems():
-            self.assertTrue(key in expected)
-            self.assertEquals(value, expected[key])
+        expected = [
+            {
+                'name': 'testhost.system.net_connections.active',
+                'value': 5
+            },
+            {
+                'name': 'testhost.system.net_io_counters.bytes_sent',
+                'value': 1,
+                'units': 'bytes'
+            },
+            {
+                'name': 'testhost.system.net_io_counters.bytes_recv',
+                'value': 2,
+                'units': 'bytes'
+            },
+            {
+                'name': 'testhost.system.net_io_counters.packets_sent',
+                'value': 3,
+            },
+            {
+                'name': 'testhost.system.net_io_counters.packets_recv',
+                'value': 4
+            },
+            {
+                'name': 'testhost.system.net_io_counters.errin',
+                'value': 5,
+            },
+            {
+                'name': 'testhost.system.net_io_counters.errout',
+                'value': 6,
+            },
+            {
+                'name': 'testhost.system.net_io_counters.dropin',
+                'value': 7,
+            },
+            {
+                'name': 'testhost.system.net_io_counters.dropout',
+                'value': 8
+            }
+        ]
+        for metric in plugin.get_network_stats():
+            for e_metric in expected:
+                if metric['name'] == e_metric['name']:
+                    self.assertEquals(metric['value'], e_metric['value'])
+                    self.assertEquals(metric.get('units'),
+                                      e_metric.get('units'))
+                    break
+            else:
+                self.fail("Metric %s not in expected" % metric['name'])
 
     @mock.patch('socket.gethostname', return_value='testhost')
     @mock.patch('psutil.cpu_times_percent', side_effect=fake_cpu_times_percent)
     @mock.patch('psutil.cpu_percent', return_value=100)
     def test_cpu_stats(self, *mocked):
         plugin = System(config={'name': 'system'})
-        expected = {
-            'testhost.system.cpu_times.percent.user': 1,
-            'testhost.system.cpu_times.percent.nice': 2,
-            'testhost.system.cpu_times.percent.system': 3,
-            'testhost.system.cpu_times.percent.idle': 4,
-            'testhost.system.cpu_times.percent.iowait': 5,
-            'testhost.system.cpu_times.percent.irq': 6,
-            'testhost.system.cpu_times.percent.softirq': 7,
-            'testhost.system.cpu_times.percent.steal': 8,
-            'testhost.system.cpu_times.percent.guest': 9,
-            'testhost.system.cpu_times.percent.guest_nice': 10,
-            'testhost.system.cpu.percent': 100
-        }
-        stats = plugin.get_cpu_stats()
-        for key, value in stats.iteritems():
-            self.assertTrue(key in expected)
-            self.assertEquals(value, expected[key])
+        expected = [
+            {
+                'name': 'testhost.system.cpu_times.percent.user',
+                'value': 1,
+                'units': 'percent'
+            },
+            {
+                'name': 'testhost.system.cpu_times.percent.nice',
+                'value': 2,
+                'units': 'percent'
+            },
+            {
+                'name': 'testhost.system.cpu_times.percent.system',
+                'value': 3,
+                'units': 'percent'
+            },
+            {
+                'name': 'testhost.system.cpu_times.percent.idle',
+                'value': 4,
+                'units': 'percent'
+            },
+            {
+                'name': 'testhost.system.cpu_times.percent.iowait',
+                'value': 5,
+                'units': 'percent'
+            },
+            {
+                'name': 'testhost.system.cpu_times.percent.irq',
+                'value': 6,
+                'units': 'percent'
+            },
+            {
+                'name': 'testhost.system.cpu_times.percent.softirq',
+                'value': 7,
+                'units': 'percent'
+            },
+            {
+                'name': 'testhost.system.cpu_times.percent.steal',
+                'value': 8,
+                'units': 'percent'
+            },
+            {
+                'name': 'testhost.system.cpu_times.percent.guest',
+                'value': 9,
+                'units': 'percent'
+            },
+            {
+                'name': 'testhost.system.cpu_times.percent.guest_nice',
+                'value': 10,
+                'units': 'percent'
+            },
+            {
+                'name': 'testhost.system.cpu.percent',
+                'value': 100,
+                'units': 'percent'
+            }
+        ]
+        for metric in plugin.get_cpu_stats():
+            for e_metric in expected:
+                if metric['name'] == e_metric['name']:
+                    self.assertEquals(metric['value'], e_metric['value'])
+                    self.assertEquals(metric.get('units'),
+                                      e_metric.get('units'))
+                    break
+            else:
+                self.fail("Metric %s not in expected" % metric['name'])
 
     @mock.patch('socket.gethostname', return_value='testhost')
     @mock.patch('psutil.virtual_memory', side_effect=fake_virtual_memory)
     @mock.patch('psutil.swap_memory', side_effect=fake_swap_memory)
     def test_memory_stats(self, *mocked):
         plugin = System(config={'name': 'system'})
-        expected = {
-            'testhost.system.virtual_memory.total': 1,
-            'testhost.system.virtual_memory.available': 2,
-            'testhost.system.virtual_memory.percent': 3,
-            'testhost.system.virtual_memory.used': 4,
-            'testhost.system.virtual_memory.free': 5,
-            'testhost.system.virtual_memory.active': 6,
-            'testhost.system.virtual_memory.inactive': 7,
-            'testhost.system.virtual_memory.buffers': 8,
-            'testhost.system.virtual_memory.cached': 9,
-            'testhost.system.swap_memory.total': 1,
-            'testhost.system.swap_memory.used': 2,
-            'testhost.system.swap_memory.free': 3,
-            'testhost.system.swap_memory.percent': 4,
-            'testhost.system.swap_memory.sin': 5,
-            'testhost.system.swap_memory.sout': 6
-        }
-        stats = plugin.get_memory_stats()
-        for key, value in stats.iteritems():
-            self.assertTrue(key in expected)
-            self.assertEquals(value, expected[key])
+        expected = [
+            {
+                'name': 'testhost.system.virtual_memory.total',
+                'value': 1,
+                'units': 'bytes'
+            },
+            {
+                'name': 'testhost.system.virtual_memory.available',
+                'value': 2,
+                'units': 'bytes'
+            },
+            {
+                'name': 'testhost.system.virtual_memory.percent',
+                'value': 3,
+                'units': 'percent'
+            },
+            {
+                'name': 'testhost.system.virtual_memory.used',
+                'value': 4,
+                'units': 'bytes'
+            },
+            {
+                'name': 'testhost.system.virtual_memory.free',
+                'value': 5,
+                'units': 'bytes'
+            },
+            {
+                'name': 'testhost.system.virtual_memory.active',
+                'value': 6
+            },
+            {
+                'name': 'testhost.system.virtual_memory.inactive',
+                'value': 7
+            },
+            {
+                'name': 'testhost.system.virtual_memory.buffers',
+                'value': 8
+            },
+            {
+                'name': 'testhost.system.virtual_memory.cached',
+                'value': 9
+            },
+            {
+                'name': 'testhost.system.swap_memory.total',
+                'value': 1,
+                'units': 'bytes'
+            },
+            {
+                'name': 'testhost.system.swap_memory.used',
+                'value': 2,
+                'units': 'bytes'
+            },
+            {
+                'name': 'testhost.system.swap_memory.free',
+                'value': 3,
+                'units': 'bytes'
+            },
+            {
+                'name': 'testhost.system.swap_memory.percent',
+                'value': 4,
+                'units': 'percent'
+            },
+            {
+                'name': 'testhost.system.swap_memory.sin',
+                'value': 5
+            },
+            {
+                'name': 'testhost.system.swap_memory.sout',
+                'value': 6
+            }
+        ]
+        for metric in plugin.get_memory_stats():
+            for e_metric in expected:
+                if metric['name'] == e_metric['name']:
+                    self.assertEquals(metric['value'], e_metric['value'])
+                    self.assertEquals(metric.get('units'),
+                                      e_metric.get('units'))
+                    break
+            else:
+                self.fail("Metric %s not in expected" % metric['name'])
 
     @mock.patch('socket.gethostname', return_value='testhost')
     @mock.patch('psutil.disk_usage', side_effect=fake_disk_usage)
     @mock.patch('psutil.disk_io_counters', side_effect=fake_disk_counters)
     def test_disk_stats(self, *mocked):
         plugin = System(config={'name': 'system'})
-        expected = {
-            'testhost.system.disk_usage./.total': 1,
-            'testhost.system.disk_usage./.used': 2,
-            'testhost.system.disk_usage./.free': 3,
-            'testhost.system.disk_usage./.percent': 4,
-            'testhost.system.disk_io_counters.read_count': 1,
-            'testhost.system.disk_io_counters.write_count': 2,
-            'testhost.system.disk_io_counters.read_bytes': 3,
-            'testhost.system.disk_io_counters.write_bytes': 4,
-            'testhost.system.disk_io_counters.read_time': 5,
-            'testhost.system.disk_io_counters.write_time': 6
-        }
-        stats = plugin.get_disk_stats()
-        for key, value in stats.iteritems():
-            self.assertTrue(key in expected)
-            self.assertEquals(value, expected[key])
+        expected = [
+            {
+                'name': 'testhost.system.disk_usage./.total',
+                'value': 1
+            },
+            {
+                'name': 'testhost.system.disk_usage./.used',
+                'value': 2
+            },
+            {
+                'name': 'testhost.system.disk_usage./.free',
+                'value': 3
+            },
+            {
+                'name': 'testhost.system.disk_usage./.percent',
+                'value': 4
+            },
+            {
+                'name': 'testhost.system.disk_io_counters.read_count',
+                'value': 1
+            },
+            {
+                'name': 'testhost.system.disk_io_counters.write_count',
+                'value': 2
+            },
+            {
+                'name': 'testhost.system.disk_io_counters.read_bytes',
+                'value': 3
+            },
+            {
+                'name': 'testhost.system.disk_io_counters.write_bytes',
+                'value': 4
+            },
+            {
+                'name': 'testhost.system.disk_io_counters.read_time',
+                'value': 5
+            },
+            {
+                'name': 'testhost.system.disk_io_counters.write_time',
+                'value': 6
+            }
+        ]
+        for metric in plugin.get_disk_stats():
+            for e_metric in expected:
+                if metric['name'] == e_metric['name']:
+                    self.assertEquals(metric['value'], e_metric['value'])
+                    self.assertEquals(metric.get('units'),
+                                      e_metric.get('units'))
+                    break
+            else:
+                self.fail("Metric %s not in expected" % metric['name'])

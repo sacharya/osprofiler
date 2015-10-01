@@ -19,7 +19,7 @@ class BluefloodHandler(Handler):
         username = self.config['auth']['username']
         client = Blueflood(auth_url=auth_url, apikey=apikey, username=username)
         self.queue = eventlet.queue.Queue()
-        self.worker = BluefloodWorker(self.queue, client)
+        self.worker = BluefloodWorker(self.queue, client, config=self.config)
 
     def handle(self, data):
         ms = utils.time_in_ms()
@@ -36,10 +36,12 @@ class BluefloodHandler(Handler):
 
 class BluefloodWorker(Worker):
 
-    def __init__(self, queue, client):
+    def __init__(self, queue, client, config=None):
+        if config is None:
+            config = {}
         self.queue = queue
         self.client = client
-        self.batch_size = 1000
+        self.batch_size = config.get('batch_size', 1000)
 
     def work(self):
         data = []

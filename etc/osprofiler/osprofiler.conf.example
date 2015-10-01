@@ -50,6 +50,7 @@ backend:
 
   - plugin: osprofiler.handlers.blueflood.BluefloodHandler
     name: "blueflood"
+    batch_size: 1000
     auth:
       username: "yourusername"
       apikey: "yourapikey"

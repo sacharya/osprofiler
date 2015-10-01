@@ -57,5 +57,7 @@ backend:
 
   - plugin: osprofiler.handlers.elastic.ElasticSearchHandler
     name: "elastic"
-    auth:
-      hostname: "yourelastichost"
+    host: 192.168.4.36
+    batch_size: 100
+    index_prefix: testcloud
+    index_type: event

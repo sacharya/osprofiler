@@ -37,23 +37,43 @@ class Process(pluginbase.PluginBase):
         memory_info = process.memory_info()
         memory_info_ex = process.memory_info_ex()
         percent = process.memory_percent()
-        return {
-            self.metric_name('memory_info.rss', process): memory_info.rss,
-            self.metric_name('memory_info.vms', process): memory_info.vms,
-            self.metric_name('memory_percent', process): percent,
-            self.metric_name('memory_info_ex.rss',
-                             process): memory_info_ex.rss,
-            self.metric_name('memory_info_ex.vms',
-                             process): memory_info_ex.vms
-        }
+        return [
+            self.metric_dict(self.metric_name('memory_info.rss', process),
+                             memory_info.rss,
+                             'bytes'),
+            self.metric_dict(self.metric_name('memory_info.vms', process),
+                             memory_info.vms,
+                             'bytes'),
+            self.metric_dict(self.metric_name('memory_percent', process),
+                             percent,
+                             'percent'),
+            self.metric_dict(self.metric_name('memory_info_ex.rss', process),
+                             memory_info_ex.rss,
+                             'bytes'),
+            self.metric_dict(self.metric_name('memory_info_ex.vms', process),
+                             memory_info_ex.vms,
+                             'bytes')
+        ]
 
     def _get_cpu_stats(self, process):
         cpu_times = process.cpu_times()
-        return {
-            self.metric_name('cpu_percent', process): process.cpu_percent(),
-            self.metric_name('cpu_times.user', process): cpu_times.user,
-            self.metric_name('cpu_times.system', process): cpu_times.system
-        }
+        return [
+            self.metric_dict(
+                self.metric_name('cpu_percent', process),
+                process.cpu_percent(),
+                'percent'
+            ),
+            self.metric_dict(
+                self.metric_name('cpu_times.user', process),
+                cpu_times.user,
+                'seconds'
+            ),
+            self.metric_dict(
+                self.metric_name('cpu_times.system', process),
+                cpu_times.system,
+                'seconds'
+            )
+        ]
 
     def _should_get_metric(self, metric):
         """
@@ -109,12 +129,14 @@ class Process(pluginbase.PluginBase):
         for proc_obj in proc_obj_list:
             if proc_obj is not None:
                 try:
-                    sample_dict = {}
                     if self._should_get_metric('memory'):
-                        sample_dict.update(self._get_memory_stats(proc_obj))
+                        sample['metrics'].extend(
+                            self._get_memory_stats(proc_obj)
+                        )
                     if self._should_get_metric('cpu'):
-                        sample_dict.update(self._get_cpu_stats(proc_obj))
-                    sample['metrics'].append(sample_dict)
+                        sample['metrics'].extend(
+                            self._get_cpu_stats(proc_obj)
+                        )
                 except psutil.NoSuchProcess:
                     logger.exception("Error sampling process information")
                     pass

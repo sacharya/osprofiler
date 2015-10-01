@@ -67,18 +67,41 @@ class TestPluginProcess(unittest.TestCase):
         """
         plugin = Process(config={'name': 'process'})
         fake_process = FakeProcess('test')
-        memory_stats = plugin._get_memory_stats(fake_process)
-        self.assertTrue(isinstance(memory_stats, dict))
-        expected = {
-            'testhost.process.test.1.memory_percent': 1,
-            'testhost.process.test.1.memory_info.rss': 2,
-            'testhost.process.test.1.memory_info.vms': 3,
-            'testhost.process.test.1.memory_info_ex.rss': 4,
-            'testhost.process.test.1.memory_info_ex.vms': 5
-        }
-        for key, value in expected.iteritems():
-            self.assertTrue(key in memory_stats)
-            self.assertEquals(memory_stats[key], value)
+        expected = [
+            {
+                'name': 'testhost.process.test.1.memory_percent',
+                'value': 1,
+                'units': 'percent'
+            },
+            {
+                'name': 'testhost.process.test.1.memory_info.rss',
+                'value': 2,
+                'units': 'bytes'
+            },
+            {
+                'name': 'testhost.process.test.1.memory_info.vms',
+                'value': 3,
+                'units': 'bytes'
+            },
+            {
+                'name': 'testhost.process.test.1.memory_info_ex.rss',
+                'value': 4,
+                'units': 'bytes'
+            },
+            {
+                'name': 'testhost.process.test.1.memory_info_ex.vms',
+                'value': 5,
+                'units': 'bytes'
+            }
+        ]
+        for metric in plugin._get_memory_stats(fake_process):
+            for e_metric in expected:
+                if metric['name'] == e_metric['name']:
+                    self.assertEquals(metric['value'], e_metric['value'])
+                    self.assertEquals(metric['units'], e_metric['units'])
+                    break
+            else:
+                self.fail("Metric %s not in expected" % metric['name'])
 
     @mock.patch('socket.gethostname', return_value='testhost')
     def test_cpu_stats(self, mocked_function):
@@ -88,16 +111,31 @@ class TestPluginProcess(unittest.TestCase):
         """
         plugin = Process(config={'name': 'process'})
         fake_process = FakeProcess('test')
-        cpu_stats = plugin._get_cpu_stats(fake_process)
-        self.assertTrue(isinstance(cpu_stats, dict))
-        expected = {
-            'testhost.process.test.1.cpu_percent': 11,
-            'testhost.process.test.1.cpu_times.user': 12,
-            'testhost.process.test.1.cpu_times.system': 13
-        }
-        for key, value in expected.iteritems():
-            self.assertTrue(key in cpu_stats)
-            self.assertEquals(cpu_stats[key], value)
+        expected = [
+            {
+                'name': 'testhost.process.test.1.cpu_percent',
+                'value': 11,
+                'units': 'percent'
+            },
+            {
+                'name': 'testhost.process.test.1.cpu_times.user',
+                'value': 12,
+                'units': 'seconds'
+            },
+            {
+                'name': 'testhost.process.test.1.cpu_times.system',
+                'value': 13,
+                'units': 'seconds'
+            }
+        ]
+        for metric in plugin._get_cpu_stats(fake_process):
+            for e_metric in expected:
+                if metric['name'] == e_metric['name']:
+                    self.assertEquals(metric['value'], e_metric['value'])
+                    self.assertEquals(metric['units'], e_metric['units'])
+                    break
+            else:
+                self.fail("Metric %s not in expected" % metric['name'])
 
     @mock.patch('psutil.process_iter', side_effect=mock_process_iter)
     def test_metrics(self, mocked_function):

@@ -23,8 +23,15 @@ class TestBluefloodHandler(unittest.TestCase):
             'auth_url': 'nonsense',
             'apikey': 'nonsense',
             'username': 'nonsense'
-        }
+        },
+        'batch_size': 123
     }
+
+    @mock.patch('osprofiler.handlers.blueflood.Blueflood')
+    def test_worker_config(self, *mocked):
+        handler = blueflood.BluefloodHandler(config=self.mock_config)
+        self.assertEquals(self.mock_config['batch_size'],
+                          handler.worker.batch_size)
 
     @mock.patch('osprofiler.handlers.blueflood.Blueflood')
     def test_handle(self, *mocked):

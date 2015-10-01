@@ -1,4 +1,4 @@
-# TODO: Put each function call on it's own thread?
+#!/usr/bin/env python
 import eventlet
 eventlet.monkey_patch()
 import log

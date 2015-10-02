@@ -1,16 +1,27 @@
-import eventlet
 import mock
 import unittest
-
-from bluefloodclient.client import Blueflood
 
 import base
 
 from osprofiler.handlers import blueflood
 
+mock_config = {
+    'auth': {
+        'auth_url': 'nonsense_url',
+        'apikey': 'nonsense_key',
+        'username': 'nonsense_user'
+    },
+    'batch_size': 123,
+    'workers': 3
+}
+
 
 def side_effect_data(data):
     return data
+
+
+class FakeWorker(object):
+    pass
 
 
 class TestBluefloodHandler(unittest.TestCase):
@@ -18,24 +29,36 @@ class TestBluefloodHandler(unittest.TestCase):
     Tests for the blueflood handler
 
     """
-    mock_config = {
-        'auth': {
-            'auth_url': 'nonsense',
-            'apikey': 'nonsense',
-            'username': 'nonsense'
-        },
-        'batch_size': 123
-    }
+    @mock.patch('osprofiler.handlers.blueflood.BluefloodWorker',
+                return_value=FakeWorker())
+    def test_init(self, mocked_worker):
+        handler = blueflood.BluefloodHandler(config=mock_config)
+        self.assertTrue(hasattr(handler, 'queue'))
+        self.assertEquals(len(handler.workers), 3)
 
-    @mock.patch('osprofiler.handlers.blueflood.Blueflood')
-    def test_worker_config(self, *mocked):
-        handler = blueflood.BluefloodHandler(config=self.mock_config)
-        self.assertEquals(self.mock_config['batch_size'],
-                          handler.worker.batch_size)
+    @mock.patch('osprofiler.handlers.blueflood.BluefloodWorker',
+                return_value=FakeWorker())
+    def test_create_worker(self, mocked_worker):
+        """
+        Tests the create worker method
+
+        """
+        handler = blueflood.BluefloodHandler(config=mock_config)
+        handler.workers = []
+        self.assertEquals(len(handler.workers), 0)
+        handler.create_worker()
+        self.assertEquals(len(handler.workers), 1)
+        args, kwargs = mocked_worker.call_args
+        self.assertEquals(args[0], handler.queue)
+        self.assertEquals(kwargs['config'], mock_config)
 
     @mock.patch('osprofiler.handlers.blueflood.Blueflood')
     def test_handle(self, *mocked):
-        handler = blueflood.BluefloodHandler(config=self.mock_config)
+        """
+        Tests the handle method
+
+        """
+        handler = blueflood.BluefloodHandler(config=mock_config)
         handler.queue.put = mock.Mock(side_effect=side_effect_data)
         expected = [
             {
@@ -78,3 +101,33 @@ class TestBluefloodHandler(unittest.TestCase):
                     break
             else:
                 self.fail("Metric %s not found in expected" % name)
+
+
+class TestBluefloodWorker(unittest.TestCase):
+    """
+    Tests the blueflood worker class
+
+    """
+    @mock.patch('osprofiler.handlers.blueflood.Blueflood')
+    def test_init(self, mocked_client):
+        """
+        Tests worker init
+        """
+        mocked_queue = mock.Mock()
+        worker = blueflood.BluefloodWorker(mocked_queue, mock_config)
+
+        # Assert that configured batch size is the right batch size
+        self.assertEquals(mock_config['batch_size'],
+                          worker.batch_size)
+
+        # Assert that the queue is the mocked queue
+        self.assertEquals(mocked_queue, worker.queue)
+
+        # Check call to blueflood client
+        kwargs = mocked_client.call_args[1]
+        self.assertEquals(kwargs['auth_url'],
+                          mock_config['auth']['auth_url'])
+        self.assertEquals(kwargs['apikey'],
+                          mock_config['auth']['apikey'])
+        self.assertEquals(kwargs['username'],
+                          mock_config['auth']['username'])

@@ -19,12 +19,20 @@ class ElasticSearchHandler(handler.Handler):
     def __init__(self, *args, **kwargs):
         super(ElasticSearchHandler, self).__init__(*args, **kwargs)
         self.queue = eventlet.queue.Queue()
-        client = elasticsearch.Elasticsearch(
-            [self.config.get('host', 'localhost')]
-        )
-        self.worker = ElasticSearchWorker(self.queue,
-                                          client,
-                                          config=self.config)
+        self.workers = []
+        for i in xrange(self.config.get('workers', 1)):
+            self.create_worker()
+
+    def create_worker(self):
+        """
+        Creates a worker.
+
+        @returns ElasticSearchWorker
+
+        """
+        worker = ElasticSearchWorker(self.queue, self.config)
+        self.workers.append(worker)
+        return worker
 
     def date_to_ms(self, source):
         return source['_context_timestamp'][:-3]
@@ -43,11 +51,13 @@ class ElasticSearchHandler(handler.Handler):
 
 class ElasticSearchWorker(handler.Worker):
 
-    def __init__(self, queue, client, config=None):
+    def __init__(self, queue, config=None):
+        self.queue = queue
         if config is None:
             config = {}
-        self.queue = queue
-        self.client = client
+        self.client = elasticsearch.Elasticsearch(
+            [config.get('host', 'localhost')]
+        )
         self.batch_size = config.get('batch_size', 100)
         self.index_prefix = config.get('index_prefix', 'yourcloud')
         self.index_type = config.get('index_type', 'event')

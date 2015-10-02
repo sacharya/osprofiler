@@ -11,9 +11,9 @@ agents:
     sample_interval: 5
     handlers: blueflood
 
-  - plugin: osprofiler.plugins.rabbit.Rabbit
+  - plugin: osprofiler.plugins.events.Events
     prefix: testcloud
-    name: "rabbit"
+    name: "events"
     metrics:
       - num_requests
       - num_connections

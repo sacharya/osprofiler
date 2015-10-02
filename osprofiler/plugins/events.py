@@ -5,10 +5,10 @@ import pluginbase
 logger = logging.getLogger('osprofiler.%s' % __name__)
 
 
-class Rabbit(pluginbase.PluginBase):
+class Events(pluginbase.PluginBase):
 
     def __init__(self, **kwargs):
-        super(Rabbit, self).__init__(**kwargs)
+        super(Events, self).__init__(**kwargs)
 
     def connect(self, name):
         if 'host' in self.config['auth']:
@@ -49,15 +49,8 @@ class Rabbit(pluginbase.PluginBase):
         return msgs
 
     def get_sample(self):
-        logger.info("Rabbit sampling")
+        logger.info("Events sampling")
         self.connect("monitor.info")
         data = self.get_messages()
-        # if d1 is None:
-        #    d1 = {}
-        # self.connect("notifications.info")
-        # d2 = self.get_messages()
-        # if d2 is None:
-        #    d2 = {}
-        # d4 = dict(d1.items() + d2.items())
         logger.debug("%s " % data)
         return data

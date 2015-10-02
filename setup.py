@@ -28,5 +28,5 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     license='Apache 2.0',
-    install_requires=required,
+    #install_requires=required,
     keywords='openstack agent profiler')

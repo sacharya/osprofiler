@@ -25,7 +25,7 @@ class PluginLoader:
         for agent in self.agent_list:
             handlers = []
             if 'handlers' in agent:
-                for handler in agent['handlers'].split(","):
+                for handler in agent['handlers']:
                     handler = backend_dict[handler]
                     handlers.append(handler)
             agent_dict[agent['name']] = self.load_object(agent,

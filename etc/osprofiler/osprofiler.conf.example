@@ -51,6 +51,7 @@ backend:
   - plugin: osprofiler.handlers.blueflood.BluefloodHandler
     name: "blueflood"
     batch_size: 1000
+    workers: 1
     auth:
       username: "yourusername"
       apikey: "yourapikey"
@@ -60,5 +61,6 @@ backend:
     name: "elastic"
     host: 192.168.4.36
     batch_size: 100
+    workers: 1
     index_prefix: testcloud
     index_type: event

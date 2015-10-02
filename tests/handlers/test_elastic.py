@@ -1,12 +1,22 @@
-import eventlet
 import mock
 import unittest
-
-from bluefloodclient.client import Blueflood
 
 import base
 
 from osprofiler.handlers import elastic
+
+mock_config = {
+    'name': 'elastic',
+    'host': 'myhost',
+    'batch_size': 123,
+    'index_prefix': 'nonsense',
+    'index_type': 'random',
+    'workers': 3
+}
+
+
+class FakeWorker(object):
+    pass
 
 
 class TestElasticHandler(unittest.TestCase):
@@ -15,36 +25,41 @@ class TestElasticHandler(unittest.TestCase):
 
     """
 
-    @mock.patch('osprofiler.handlers.elastic.eventlet.queue.Queue')
-    @mock.patch('osprofiler.handlers.elastic.elasticsearch.Elasticsearch')
-    def test_client(self, mock_elastic, mock_queue):
+    @mock.patch('osprofiler.handlers.elastic.ElasticSearchWorker',
+                return_value=FakeWorker())
+    def test_init(self, mocked_worker):
         """
-        Tests if the config is used to create a client
+        Tests init
 
         """
-        config = {
-            'name': 'elastic',
-            'host': 'myhost'
-        }
-        handler = elastic.ElasticSearchHandler(config=config)
-        client_args = mock_elastic.call_args[0][0]
+        handler = elastic.ElasticSearchHandler(config=mock_config)
+        self.assertTrue(hasattr(handler, 'queue'))
+        self.assertEquals(len(handler.workers), mock_config['workers'])
+
+    @mock.patch('osprofiler.handlers.elastic.ElasticSearchWorker',
+                return_value=FakeWorker())
+    def test_create_worker(self, mocked_worker):
+        """
+        Tests worker creation
+
+        """
+        handler = elastic.ElasticSearchHandler(config=mock_config)
+        handler.create_worker()
+        self.assertEquals(len(handler.workers), mock_config['workers'] + 1)
+
+
+class TestElasticsearchWorker(unittest.TestCase):
+    """
+    Tests the elastic search worker
+
+    """
+    @mock.patch('osprofiler.handlers.elastic.elasticsearch.Elasticsearch')
+    def test_init(self, mocked_elastic):
+        mock_queue = mock.Mock()
+        worker = elastic.ElasticSearchWorker(mock_queue, config=mock_config)
+        self.assertEquals(worker.batch_size, mock_config['batch_size'])
+        self.assertEquals(worker.index_prefix, mock_config['index_prefix'])
+        self.assertEquals(worker.index_type, mock_config['index_type'])
+        client_args = mocked_elastic.call_args[0][0]
         self.assertTrue(isinstance(client_args, list))
-        self.assertTrue(config['host'] in client_args)
-
-    @mock.patch('osprofiler.handlers.elastic.eventlet.queue.Queue')
-    @mock.patch('osprofiler.handlers.elastic.elasticsearch.Elasticsearch')
-    def test_worker_config(self, mock_elastic, mock_queue):
-        """
-        Tests if the config is used to create a client
-
-        """
-        config = {
-            'name': 'elastic',
-            'batch_size': 123,
-            'index_prefix': 'nonsense',
-            'index_type': 'random'
-        }
-        handler = elastic.ElasticSearchHandler(config=config)
-        self.assertEquals(handler.worker.batch_size, config['batch_size'])
-        self.assertEquals(handler.worker.index_prefix, config['index_prefix'])
-        self.assertEquals(handler.worker.index_type, config['index_type'])
+        self.assertTrue(mock_config['host'] in client_args)

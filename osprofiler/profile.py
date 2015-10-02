@@ -32,9 +32,9 @@ class Application:
                         handlers.extend(plugin.handlers)
             handlers = list(set(handlers))
             for handler in handlers:
-                worker = handler.worker
-                logger.info("Running worker %s " % worker)
-                pool.spawn(worker.execute)
+                for worker in handler.workers:
+                    logger.info("Running worker %s " % worker)
+                    pool.spawn(worker.execute)
                 time.sleep(0.1)
 
             pool.waitall()

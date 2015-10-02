@@ -14,12 +14,20 @@ class BluefloodHandler(Handler):
 
     def __init__(self, *args, **kwargs):
         super(BluefloodHandler, self).__init__(*args, **kwargs)
-        auth_url = self.config['auth']['auth_url']
-        apikey = self.config['auth']['apikey']
-        username = self.config['auth']['username']
-        client = Blueflood(auth_url=auth_url, apikey=apikey, username=username)
         self.queue = eventlet.queue.Queue()
-        self.worker = BluefloodWorker(self.queue, client, config=self.config)
+        self.workers = []
+
+        for i in xrange(self.config.get('workers', 1)):
+            self.create_worker()
+
+    def create_worker(self):
+        """
+        Creates a worker
+
+        """
+        worker = BluefloodWorker(self.queue, config=self.config)
+        self.workers.append(worker)
+        return worker
 
     def handle(self, data):
         ms = utils.time_in_ms()
@@ -36,11 +44,22 @@ class BluefloodHandler(Handler):
 
 class BluefloodWorker(Worker):
 
-    def __init__(self, queue, client, config=None):
+    def __init__(self, queue, config=None):
+        """
+        Sets the queue and pulls info from the config
+
+        @param queue - Eventlet queue
+        @param config - Dictionary
+
+        """
+        self.queue = queue
         if config is None:
             config = {}
-        self.queue = queue
-        self.client = client
+        self.client = Blueflood(
+            auth_url=config['auth']['auth_url'],
+            apikey=config['auth']['apikey'],
+            username=config['auth']['username']
+        )
         self.batch_size = config.get('batch_size', 1000)
 
     def work(self):

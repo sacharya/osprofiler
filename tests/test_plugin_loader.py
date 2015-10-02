@@ -89,7 +89,6 @@ class TestPluginLoader(unittest.TestCase):
             'name': 'fake_name'
         }
         obj = loader.load_object(params)
-        print "\nType of object", type(obj)
 
     def test_load_object_internal(self):
         """
@@ -102,4 +101,3 @@ class TestPluginLoader(unittest.TestCase):
             'name': 'PluginBase'
         }
         obj = loader.load_object(params)
-        print "\nType of object", type(obj)

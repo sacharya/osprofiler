@@ -4,3 +4,4 @@ pyyaml
 elasticsearch
 psutil
 eventlet
+requests

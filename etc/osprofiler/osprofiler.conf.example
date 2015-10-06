@@ -9,7 +9,20 @@ agents:
       username: "root"
       password: "admin"
     sample_interval: 5
-    handlers: blueflood
+    handlers:
+        - blueflood
+
+  - plugin: osprofiler.plugins.rabbit.Rabbit
+    name: "rabbit"
+    prefix: somecloud
+    sample_interval: 5
+    auth:
+        host: 127.0.0.1
+        port: 15672
+        usernname: guest
+        password: guest
+    handlers:
+        - blueflood
 
   - plugin: osprofiler.plugins.events.Events
     prefix: testcloud
@@ -21,14 +34,16 @@ agents:
       username: "guest"
       password: "guest"
     sample_interval: 0.3
-    handlers: elastic
+    handlers:
+        - elastic
 
   - plugin: osprofiler.plugins.system.System
     # Metrics will be named testcloud.system.rest.of.metric
     prefix: testcloud
     name: "system"
     sample_interval: 5
-    handlers: blueflood
+    handlers:
+        - blueflood
 
   - plugin: osprofiler.plugins.process.Process
     # Metrics will be named testcloud.process.rest.of.metric

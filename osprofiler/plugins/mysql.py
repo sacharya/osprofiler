@@ -58,7 +58,6 @@ class Mysql(pluginbase.PluginBase):
             query = 'mysql --defaults-file=%s %s%s -e \"%s\"' % (defaults_file,
                                                                  host, port,
                                                                  mysql_query)
-        print query
         return query
 
     def get_sample(self):

@@ -39,20 +39,27 @@ class Mysql(pluginbase.PluginBase):
         ret = proc.returncode
         return ret, out, err
 
-    def generate_query(self, host, port):
-        if host:
-            host = ' -h %s' % host
+    def generate_query(self):
+        defaults_file = self.config.get('auth').get('defaults-file')
+        host = self.config.get('auth').get('host', '127.0.0.1')
+        port = self.config.get('auth').get('port', '3306')
+        port = ' -P %s' % port if port else ''
+        host = ' -h %s' % host if host else ''
+        mysql_query = """SHOW STATUS WHERE Variable_name REGEXP
+                         '^(wsrep.*|Threads|queries)'"""
+        if defaults_file is None:
+            username = self.config.get('auth').get('username', 'root')
+            password = self.config.get('auth').get('password', 'admin')
+            username = '-u%s' % username if username else ''
+            password = '-p%s' % password if password else ''
+            query = 'mysql %s %s %s %s -e \"%s\"' % (username, password,
+                                                     host, port, mysql_query)
         else:
-            host = ''
-
-        if port:
-            port = ' -P %s' % port
-        else:
-            port = ''
-
-        return ('/usr/bin/mysql --defaults-file=/home/stack/.my.cnf'
-                '%s%s -e "SHOW STATUS WHERE Variable_name REGEXP '
-                "'^(wsrep.*|Threads|queries)'\"") % (host, port)
+            query = 'mysql --defaults-file=%s %s%s -e \"%s\"' % (defaults_file,
+                                                                 host, port,
+                                                                 mysql_query)
+        print query
+        return query
 
     def get_sample(self):
         sample = {
@@ -61,10 +68,8 @@ class Mysql(pluginbase.PluginBase):
             "metrics": list()
         }
 
-        host = "127.0.0.1"
-        port = "3306"
         retcode, output, err = self.galera_status_check(
-            self.generate_query(host, port)
+            self.generate_query()
         )
 
         if retcode > 0:

@@ -6,6 +6,9 @@ agents:
     prefix: testcloud
     name: "mysql"
     auth:
+      defaults-file: "/home/stack/.my.cnf"
+      host: 127.0.0.1
+      port: 3306
       username: "root"
       password: "admin"
     sample_interval: 5

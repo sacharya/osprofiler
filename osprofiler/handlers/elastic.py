@@ -56,7 +56,7 @@ class ElasticSearchWorker(handler.Worker):
         if config is None:
             config = {}
         self.client = elasticsearch.Elasticsearch(
-            [config.get('host', 'localhost')]
+            config.get('host', 'localhost').split(",")
         )
         self.batch_size = config.get('batch_size', 100)
         self.index_prefix = config.get('index_prefix', 'yourcloud')

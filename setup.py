@@ -23,10 +23,11 @@ with open('requirements.txt') as f:
 
 setup(
     name='osprofiler',
-    version='0.3',
+    version='0.4',
     description='OpenStack Profiler Agent',
     packages=find_packages(),
     include_package_data=True,
     license='Apache 2.0',
     #install_requires=required,
+    scripts = ["osprofiler/profile.py"],
     keywords='openstack agent profiler')

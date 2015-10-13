@@ -2,6 +2,6 @@
 kombu
 pyyaml
 elasticsearch
-psutil
+psutil>=3.2.2
 eventlet
 requests

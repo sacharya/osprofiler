@@ -1,7 +1,7 @@
 -e git+http://github.com/absalon-james/python-blueflood.git@master#egg=python-blueflood
+-e git+https://github.com/giampaolo/psutil.git@release-3.2.1#egg=psutil
 kombu
 pyyaml
 elasticsearch
-psutil>=3.2.2
 eventlet
 requests

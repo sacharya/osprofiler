@@ -58,7 +58,8 @@ class BluefloodWorker(Worker):
         self.client = Blueflood(
             auth_url=config['auth']['auth_url'],
             apikey=config['auth']['apikey'],
-            username=config['auth']['username']
+            username=config['auth']['username'],
+            ingest_url=config['auth']['ingest_url']
         )
         self.batch_size = config.get('batch_size', 1000)
 

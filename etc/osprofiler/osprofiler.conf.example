@@ -74,6 +74,7 @@ backend:
       username: "yourusername"
       apikey: "yourapikey"
       auth_url: "https://identity.api.rackspacecloud.com/v2.0/"
+      ingest_url: "ingesturl"
 
   - plugin: osprofiler.handlers.elastic.ElasticSearchHandler
     name: "elastic"

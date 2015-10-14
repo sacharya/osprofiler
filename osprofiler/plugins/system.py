@@ -105,6 +105,7 @@ class System(pluginbase.PluginBase):
         return disk
 
     def get_sample(self):
+        logger.info("System sampling")
         sample = {
             "hostname": self.host_id,
             "agent_name": self.config['name'],

@@ -61,6 +61,7 @@ class Mysql(pluginbase.PluginBase):
         return query
 
     def get_sample(self):
+        logger.info("MySQL sampling")
         sample = {
             "hostname": self.host_id,
             "agent_name": self.config.get('name', 'mysql'),

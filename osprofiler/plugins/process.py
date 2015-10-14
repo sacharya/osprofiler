@@ -119,6 +119,7 @@ class Process(pluginbase.PluginBase):
         return proc_list
 
     def get_sample(self):
+        logger.info("Process sampling")
         sample = {
             "hostname": os.uname()[1],
             "agent_name": self.config.get('name', 'process'),

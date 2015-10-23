@@ -33,7 +33,7 @@ class BluefloodHandler(Handler):
         ms = utils.time_in_ms()
         for d in data.get('metrics'):
             entry = {
-                "ttlInSeconds": 604800', "collectionTime": ms,
+                "ttlInSeconds": 604800, "collectionTime": ms,
                 "metricName": d['name'],
                 "metricValue": d['value']
             }

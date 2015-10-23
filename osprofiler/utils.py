@@ -8,7 +8,7 @@ epoch = datetime.datetime.utcfromtimestamp(0)
 
 
 def time_in_s():
-    delta = datetime.datetime.now() - epoch
+    delta = datetime.datetime.utcnow() - epoch
     return delta.total_seconds()
 
 

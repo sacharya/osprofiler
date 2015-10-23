@@ -23,7 +23,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='osprofiler',
-    version='0.5',
+    version='0.6',
     description='OpenStack Profiler Agent',
     packages=find_packages(),
     include_package_data=True,

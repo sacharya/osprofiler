@@ -62,10 +62,12 @@ class BluefloodWorker(Worker):
             ingest_url=config['auth']['ingest_url']
         )
         self.batch_size = config.get('batch_size', 1000)
+        self.timeout = 300
 
     def work(self):
         data = []
         logger.info("Blueflood Queue size is: %s " % self.queue.qsize())
+        start_work = utils.time_in_s()
         for i in xrange(self.batch_size):
             try:
                 entry = self.queue.get(block=False)
@@ -86,6 +88,10 @@ class BluefloodWorker(Worker):
             except Exception:
                 logger.exception("Error submitting to blueflood")
 
-        # Sleep if we hit the empty queue
-        if len(data) < self.batch_size:
+        # Sleep till queue is filled enough or time out is reached
+        while True:
+            work_time_taken = (utils.time_in_s() - start_work)
+            if (self.queue.qsize() > self.batch_size) or work_time_taken > self.timeout:
+                break
             time.sleep(1)
+
